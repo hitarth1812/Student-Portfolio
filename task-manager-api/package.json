@@ -1,0 +1,22 @@
+{
+  "name": "task-manager-api",
+  "version": "1.0.0",
+  "description": "Production-grade Express.js REST API for Task Management",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "express",
+    "rest-api",
+    "task-manager",
+    "nodejs",
+    "commonjs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
