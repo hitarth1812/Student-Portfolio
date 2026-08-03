@@ -4,7 +4,7 @@ A production-grade, highly modular Express.js REST API built following clean arc
 
 ---
 
-## 📁 Folder Structure
+## Folder Structure
 
 ```text
 task-manager-api/
@@ -33,7 +33,7 @@ task-manager-api/
 
 ---
 
-## ⚙️ Installation & Usage
+## Installation & Usage
 
 ### 1. Installation
 
@@ -62,7 +62,7 @@ The server will start listening at: `http://localhost:5000`
 
 ---
 
-## 🚀 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Description | Request Body | Success Status | Error Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -74,7 +74,7 @@ The server will start listening at: `http://localhost:5000`
 
 ---
 
-## 📬 Example Requests & Responses
+## Example Requests & Responses
 
 ### 1. GET `/tasks`
 - **Request**: `GET http://localhost:5000/tasks`
@@ -156,7 +156,7 @@ The server will start listening at: `http://localhost:5000`
 
 ---
 
-## 🚦 Status Codes Standard
+## Status Codes Standard
 
 - `200 OK`: Request succeeded (GET, PUT, DELETE).
 - `201 Created`: Resource successfully created (POST).
@@ -167,7 +167,7 @@ The server will start listening at: `http://localhost:5000`
 
 ---
 
-## 🛡️ Middleware Architecture
+## Middleware Architecture
 
 1. **`logger.js`**: Global logging middleware attached via `app.use(logger)`. Logs ISO timestamp and request method/URL to stdout.
 2. **`validateJson.js`**: Route-level middleware attached to POST and PUT endpoints. Validates that incoming payload headers specify `Content-Type: application/json`.
