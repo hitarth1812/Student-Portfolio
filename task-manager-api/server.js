@@ -1,4 +1,7 @@
+require('dotenv').config();
+
 const express = require('express');
+const connectDB = require('./config/db');
 const logger = require('./middleware/logger');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
@@ -7,13 +10,16 @@ const taskRoutes = require('./routes/taskRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 1. Body Parser Middleware
+// 1. Connect to MongoDB
+connectDB();
+
+// 2. Body Parser Middleware
 app.use(express.json());
 
-// 2. Global Logging Middleware
+// 3. Global Logging Middleware
 app.use(logger);
 
-// 3. API Routes
+// 4. API Routes
 app.get('/', (req, res) => {
   res.status(200).json({
     message: "Task Management REST API is running",
@@ -29,10 +35,10 @@ app.get('/', (req, res) => {
 
 app.use('/tasks', taskRoutes);
 
-// 4. 404 Catch-all Middleware (After all routes)
+// 5. 404 Catch-all Middleware (After all routes)
 app.use(notFound);
 
-// 5. Global Error Handler Middleware (MUST be last)
+// 6. Global Error Handler Middleware (MUST be last)
 app.use(errorHandler);
 
 // Start Server
