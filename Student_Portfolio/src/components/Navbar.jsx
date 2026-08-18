@@ -12,6 +12,7 @@ function Navbar({ theme, toggleTheme }) {
         <div className="navbar-links" id="nav-links">
           <Link to="/" className="nav-link" id="nav-link-home">Home</Link>
           <Link to="/projects" className="nav-link" id="nav-link-projects">Projects</Link>
+          <Link to="/tasks" className="nav-link" id="nav-link-tasks">Tasks</Link>
           <Link to="/contact" className="nav-link" id="nav-link-contact">Contact</Link>
           <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
         </div>

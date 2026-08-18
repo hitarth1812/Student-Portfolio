@@ -744,3 +744,176 @@ body {
   background-color: var(--primary-hover);
 }
 
+/* ==========================================
+   TASKS PAGE
+   ========================================== */
+
+.task-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.task-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.task-form input {
+  flex: 1 1 220px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  outline: none;
+  font-family: inherit;
+}
+
+.task-form input:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.task-form button {
+  flex: 0 0 auto;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.task-form button:hover {
+  background-color: var(--primary-hover);
+}
+
+.task-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.task-list > p {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+}
+
+.task-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.task-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.task-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.task-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  margin-top: 0.5rem;
+  flex-grow: 1;
+}
+
+.task-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.task-checkbox-row input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.task-card.task-completed h3 {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.task-card.task-completed p {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.task-edit-input {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.95rem;
+  outline: none;
+  font-family: inherit;
+  margin-bottom: 0.75rem;
+}
+
+.task-edit-input:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.task-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.task-card-actions button:first-child {
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.task-card-actions button:first-child:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.task-card-actions button:last-child {
+  background-color: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.task-card-actions button:last-child:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
