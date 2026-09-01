@@ -1,6 +1,15 @@
 const mongoose = require("mongoose");
 
 const taskSchema = new mongoose.Schema({
+  // Owner of the task. Every query is scoped by this field so one logged-in
+  // user can never read or modify another user's tasks.
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: [true, "Task must belong to a user"],
+    index: true,
+  },
+
   title: {
     type: String,
     required: [true, "Title is required"],

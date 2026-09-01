@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Spinner from "../components/Spinner";
+import { useAuth } from "../context/auth-context";
 import ErrorMessage from "../components/ErrorMessage";
 import {
   getTasks,
@@ -9,6 +10,8 @@ import {
 } from "../api";
 
 function Tasks() {
+  const { user } = useAuth();
+
   const [tasks, setTasks] = useState([]);
   const [taskLoading, setTaskLoading] = useState(false);
   const [taskError, setTaskError] = useState(null);
@@ -30,7 +33,9 @@ function Tasks() {
 
       setTasks(Array.isArray(data) ? data : []);
     } catch (err) {
-      setTaskError(err.message || "Failed to load tasks.");
+      if (err.status !== 401) {
+        setTaskError(err.message || "Failed to load tasks.");
+      }
     } finally {
       setTaskLoading(false);
     }
@@ -57,7 +62,9 @@ function Tasks() {
         prev.map((item) => (item._id === updatedTask._id ? updatedTask : item))
       );
     } catch (err) {
-      setTaskError(err.message || "Failed to update task.");
+      if (err.status !== 401) {
+        setTaskError(err.message || "Failed to update task.");
+      }
     } finally {
       setTaskLoading(false);
     }
@@ -77,7 +84,9 @@ function Tasks() {
       setTitle("");
       setDescription("");
     } catch (err) {
-      setTaskError(err.message || "Failed to create task.");
+      if (err.status !== 401) {
+        setTaskError(err.message || "Failed to create task.");
+      }
     } finally {
       setTaskLoading(false);
     }
@@ -120,7 +129,9 @@ function Tasks() {
 
       setTasks((prev) => prev.filter((task) => task._id !== id));
     } catch (err) {
-      setTaskError(err.message || "Failed to delete task.");
+      if (err.status !== 401) {
+        setTaskError(err.message || "Failed to delete task.");
+      }
     } finally {
       setTaskLoading(false);
     }
@@ -133,7 +144,8 @@ function Tasks() {
       </h1>
 
       <p className="page-subtitle" id="tasks-subtitle">
-        Full-stack task management powered by React, Express, and MongoDB.
+        Signed in as <strong>{user?.name || user?.email}</strong> - these tasks are
+        yours alone, fetched with your JWT.
       </p>
 
       <section className="task-section">
@@ -160,7 +172,11 @@ function Tasks() {
         {taskLoading && <Spinner text="Processing Tasks..." />}
 
         {!taskLoading && taskError && (
-          <ErrorMessage message={taskError} onRetry={loadTasks} />
+          <ErrorMessage
+            title="Couldn't complete that action"
+            message={taskError}
+            onRetry={loadTasks}
+          />
         )}
 
         {!taskLoading && !taskError && (
