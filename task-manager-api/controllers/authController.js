@@ -14,7 +14,7 @@ const signToken = (user) => {
   }
 
   return jwt.sign(
-    { id: user._id, email: user.email },
+    { id: user._id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: TOKEN_EXPIRY }
   );
@@ -25,6 +25,7 @@ const publicUser = (user) => ({
   id: user._id,
   name: user.name,
   email: user.email,
+  role: user.role,
   createdAt: user.createdAt
 });
 
@@ -46,7 +47,14 @@ const register = async (req, res, next) => {
     // makes brute-forcing a stolen hash impractical.
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ name, email, password: hashedPassword });
+    // Security: normal registration must NEVER allow the client to specify role.
+    // Always assign 'user'.
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'user'
+    });
 
     res.status(201).json({
       success: true,

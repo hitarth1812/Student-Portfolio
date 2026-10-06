@@ -31,8 +31,8 @@ const auth = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Downstream controllers read req.user.id to scope data to the caller
-    req.user = { id: decoded.id, email: decoded.email };
+    // Downstream controllers read req.user to scope data and authorize permissions
+    req.user = { id: decoded.id, email: decoded.email, role: decoded.role || 'user' };
 
     next();
   } catch (err) {

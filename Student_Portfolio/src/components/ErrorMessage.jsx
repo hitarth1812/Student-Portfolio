@@ -1,5 +1,3 @@
-import React from "react";
-
 // Component to render user-friendly error messages with optional retry functionality
 function ErrorMessage({ message, onRetry, title = "Oops! Couldn't load projects" }) {
   return (

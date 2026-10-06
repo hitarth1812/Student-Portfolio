@@ -8,9 +8,10 @@ function Projects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchRepos = useCallback(() => {
-    setLoading(true);
-    setError(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
 
     fetch("https://api.github.com/users/hitarth1812/repos")
       .then((res) => {
@@ -23,6 +24,7 @@ function Projects() {
         return res.json();
       })
       .then((data) => {
+        if (!isMounted) return;
         const sortedData = Array.isArray(data)
           ? data.sort(
               (a, b) =>
@@ -31,21 +33,30 @@ function Projects() {
           : [];
 
         setRepos(sortedData);
+        setError(null);
       })
       .catch((err) => {
+        if (!isMounted) return;
         setError(
           err.message ||
             "Network error occurred while fetching repositories."
         );
       })
       .finally(() => {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       });
-  }, []);
 
-  useEffect(() => {
-    fetchRepos();
-  }, [fetchRepos]);
+    return () => {
+      isMounted = false;
+    };
+  }, [reloadKey]);
+
+  const fetchRepos = useCallback(() => {
+    setLoading(true);
+    setReloadKey((k) => k + 1);
+  }, []);
 
   return (
     <div

@@ -3,11 +3,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const migrateData = require('./config/migrateData');
 const logger = require('./middleware/logger');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -19,8 +21,10 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-// 1. Connect to MongoDB (Atlas)
-connectDB();
+// 1. Connect to MongoDB and run safe backward-compatibility migrations
+connectDB().then(() => {
+  migrateData();
+});
 
 // 2. CORS + Body Parser Middleware
 app.use(cors());
@@ -32,7 +36,7 @@ app.use(logger);
 // 4. API Routes
 app.get('/', (req, res) => {
   res.status(200).json({
-    message: "Task Management REST API is running",
+    message: "Task Management REST API with RBAC is running",
     endpoints: {
       register: "POST /auth/register (public)",
       login: "POST /auth/login (public)",
@@ -42,14 +46,20 @@ app.get('/', (req, res) => {
       getTaskById: "GET /tasks/:id (protected)",
       createTask: "POST /tasks (protected)",
       updateTask: "PUT /tasks/:id (protected)",
-      deleteTask: "DELETE /tasks/:id (protected)"
+      deleteTask: "DELETE /tasks/:id (protected)",
+      getAllUsers: "GET /users (protected: admin, manager)",
+      updateUserRole: "PUT /users/:id/role (protected: admin)",
+      deleteUser: "DELETE /users/:id (protected: admin)"
     },
+    roles: ["user", "manager", "admin"],
+    taskStatuses: ["pending", "incomplete", "completed"],
     note: "Protected routes require the header: Authorization: Bearer <token>"
   });
 });
 
 app.use('/auth', authRoutes);
 app.use('/tasks', taskRoutes);
+app.use('/users', userRoutes);
 
 // 5. 404 Catch-all Middleware (After all routes)
 app.use(notFound);

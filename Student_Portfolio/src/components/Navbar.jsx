@@ -24,13 +24,21 @@ function Navbar({ theme, toggleTheme }) {
           <Link to="/" className="nav-link" id="nav-link-home">Home</Link>
           <Link to="/projects" className="nav-link" id="nav-link-projects">Projects</Link>
           <Link to="/tasks" className="nav-link" id="nav-link-tasks">Tasks</Link>
+          {(user?.role === "admin" || user?.role === "manager") && (
+            <Link to="/users" className="nav-link" id="nav-link-users">Users</Link>
+          )}
           <Link to="/contact" className="nav-link" id="nav-link-contact">Contact</Link>
 
           {isAuthenticated ? (
             <>
-              <span className="nav-user" id="nav-user-email" title={user?.email}>
-                {user?.name || user?.email}
-              </span>
+              <div className="nav-user-container">
+                <span className="nav-user" id="nav-user-email" title={user?.email}>
+                  {user?.name || user?.email}
+                </span>
+                <span className={`role-badge role-badge-${user?.role || "user"}`} id="nav-user-role">
+                  {user?.role || "user"}
+                </span>
+              </div>
               <button
                 type="button"
                 className="nav-auth-btn"

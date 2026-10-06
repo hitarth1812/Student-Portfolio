@@ -7,6 +7,7 @@
  * actually sent need to be valid.
  */
 const ALLOWED_PRIORITIES = ['low', 'medium', 'high'];
+const ALLOWED_STATUSES = ['pending', 'incomplete', 'completed'];
 
 const validateTask = (options = {}) => {
   const { partial = false } = options;
@@ -31,6 +32,10 @@ const validateTask = (options = {}) => {
 
     if (body.completed !== undefined && typeof body.completed !== 'boolean') {
       errors.completed = 'Completed must be a boolean';
+    }
+
+    if (body.status !== undefined && !ALLOWED_STATUSES.includes(body.status)) {
+      errors.status = `Status must be one of: ${ALLOWED_STATUSES.join(', ')}`;
     }
 
     if (body.priority !== undefined && !ALLOWED_PRIORITIES.includes(body.priority)) {

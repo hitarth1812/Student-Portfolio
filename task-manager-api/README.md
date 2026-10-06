@@ -432,3 +432,61 @@ The React app (`../Student_Portfolio`) consumes this API:
 - **`src/context/AuthContext.jsx`** — holds the session. On load it exchanges a stored token for the user via `GET /auth/me`; a stale token 401s and is cleared.
 - **401 handling** — `api.js` calls a single registered handler on *any* 401, which clears the token, resets the user and sets "Your session expired. Please log in again." `ProtectedRoute` then redirects to `/login`, remembering the attempted path so login can send the user back.
 - **Logout** — `POST /auth/logout` then discard the token. Since a JWT is stateless the server cannot revoke it, which is exactly why the 1-hour expiry matters: the window in which a stolen token is useful is bounded.
+
+---
+
+## 11. Role-Based Access Control (RBAC) & Task Status Segregation
+
+### System Roles
+- **`user`**: Normal user. Can create, read, update, change status, and delete their own tasks.
+- **`manager`**: Elevated role. Can view team tasks, manage tasks across users, and view the user directory.
+- **`admin`**: Full administrative access. Can manage all tasks, view users, change user roles, and delete user accounts.
+
+### Role Permission Matrix
+
+| Action | USER | MANAGER | ADMIN |
+| :--- | :---: | :---: | :---: |
+| Login / Register | YES | YES | YES |
+| View own tasks | YES | YES | YES |
+| Create own task | YES | YES | YES |
+| Update own task | YES | YES | YES |
+| Delete own task | YES | YES | YES |
+| Change task status | YES | YES | YES |
+| View other users' tasks | NO | YES | YES |
+| Manage other users' tasks | NO | YES | YES |
+| View users (`GET /users`) | NO | YES | YES |
+| Change user role (`PUT /users/:id/role`) | NO | NO | YES |
+| Delete users (`DELETE /users/:id`) | NO | NO | YES |
+
+### Task Status Lifecycle & Backward Compatibility
+Tasks now support three explicit states:
+- **`pending`**: Task created but work has not started.
+- **`incomplete`**: Task is actively in progress or paused.
+- **`completed`**: Task has been finished.
+
+**Backward Compatibility**:
+Existing documents with boolean `completed` values are automatically migrated on server startup:
+- `completed === true` maps to `completed`.
+- `completed === false` maps to `pending`.
+- `completed` boolean and `status` string are kept synchronized by schema pre-save hooks and controllers so existing API consumers never break.
+
+### Protected RBAC Endpoints
+
+| Method | Endpoint | Authorization | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/tasks` | Authenticated | Get own tasks (or all tasks for manager/admin if `?all=true`) |
+| `GET` | `/tasks/:id` | Authenticated | Get task by ID (enforces ownership for `user`, elevated access for `manager`/`admin`) |
+| `POST` | `/tasks` | Authenticated | Create a new task (strictly owned by authenticated user) |
+| `PUT` | `/tasks/:id` | Authenticated | Update task (status transitions, priority, content) |
+| `DELETE`| `/tasks/:id` | Authenticated | Delete task (ownership enforced for normal users) |
+| `GET` | `/users` | `authorize('admin', 'manager')` | View all registered users |
+| `PUT` | `/users/:id/role`| `authorize('admin')` | Change a user's role (`user`, `manager`, `admin`) |
+| `DELETE`| `/users/:id` | `authorize('admin')` | Delete user and their associated tasks |
+
+### Security Measures & Privilege Escalation Prevention
+1. **JWT Role Claim**: JWT payload contains `{ id, email, role }`.
+2. **Authoritative Backend Verification**: RBAC middleware (`middleware/authorize.js`) validates authorization against the live MongoDB record to prevent stale or forged roles.
+3. **Registration Hardening**: Public registration strictly sets `role: 'user'`, discarding any client-supplied role values.
+4. **IDOR Prevention**: Normal users attempting to view, update, or delete other users' tasks receive `404 Not Found`.
+5. **Admin Self-Protection**: Admins cannot delete their own account or demote themselves if they are the sole administrator.
+

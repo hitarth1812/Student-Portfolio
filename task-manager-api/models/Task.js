@@ -21,6 +21,16 @@ const taskSchema = new mongoose.Schema({
     trim: true,
   },
 
+  status: {
+    type: String,
+    enum: {
+      values: ["pending", "incomplete", "completed"],
+      message: "Status must be one of: pending, incomplete, completed",
+    },
+    default: "pending",
+    index: true,
+  },
+
   completed: {
     type: Boolean,
     default: false,
@@ -41,7 +51,10 @@ const taskSchema = new mongoose.Schema({
   },
 });
 
-// Ensure title is trimmed before saving
+// Compound index for optimized querying by user and status
+taskSchema.index({ user: 1, status: 1 });
+
+// Ensure title/description are trimmed and status/completed remain synchronized
 taskSchema.pre("save", function (next) {
   if (typeof this.title === "string") {
     this.title = this.title.trim();
@@ -49,6 +62,13 @@ taskSchema.pre("save", function (next) {
 
   if (typeof this.description === "string") {
     this.description = this.description.trim();
+  }
+
+  // Backward compatibility: maintain both status and completed in sync
+  if (this.status) {
+    this.completed = this.status === "completed";
+  } else if (typeof this.completed === "boolean") {
+    this.status = this.completed ? "completed" : "pending";
   }
 
   next();

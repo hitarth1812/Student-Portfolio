@@ -85,6 +85,9 @@ export function AuthProvider({ children }) {
 
   const value = {
     user,
+    role: user?.role || "user",
+    isAdmin: user?.role === "admin",
+    isManager: user?.role === "manager",
     loading,
     sessionMessage,
     clearSessionMessage: () => setSessionMessage(""),

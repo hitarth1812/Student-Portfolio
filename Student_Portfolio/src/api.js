@@ -109,8 +109,13 @@ export const logoutUser = async () => {
 
 /* ---------- Tasks (all protected) ---------- */
 
-export const getTasks = async () => {
-  const body = await request('/tasks');
+export const getTasks = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.all) query.set('all', 'true');
+  if (params.status) query.set('status', params.status);
+  const qs = query.toString() ? `?${query.toString()}` : '';
+
+  const body = await request(`/tasks${qs}`);
   return body.data;
 };
 
@@ -128,3 +133,26 @@ export const deleteTask = async (id) => {
   const body = await request(`/tasks/${id}`, { method: 'DELETE' });
   return body.data;
 };
+
+/* ---------- Users / Admin (protected) ---------- */
+
+export const getUsers = async () => {
+  const body = await request('/users');
+  return body.data;
+};
+
+export const updateUserRole = async (id, role) => {
+  const body = await request(`/users/${id}/role`, {
+    method: 'PUT',
+    body: { role },
+  });
+  return body.data;
+};
+
+export const deleteUser = async (id) => {
+  const body = await request(`/users/${id}`, {
+    method: 'DELETE',
+  });
+  return body.data;
+};
+
