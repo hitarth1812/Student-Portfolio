@@ -1,5 +1,21 @@
 const Task = require('../models/Task');
 
+// HATEOAS: attach the actions a client can take next on a single task
+const withLinks = (req, task) => {
+  const base = `${req.protocol}://${req.get('host')}/tasks`;
+  const self = `${base}/${task._id}`;
+
+  return {
+    ...task.toObject({ virtuals: true }),
+    _links: {
+      self: { href: self, method: 'GET' },
+      update: { href: self, method: 'PUT' },
+      delete: { href: self, method: 'DELETE' },
+      all: { href: base, method: 'GET' }
+    }
+  };
+};
+
 // GET /tasks - Get tasks (own tasks for user, all or own for manager/admin)
 const getAllTasks = async (req, res, next) => {
   try {
@@ -44,7 +60,7 @@ const getTaskById = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Task not found' });
     }
 
-    res.status(200).json({ success: true, data: task });
+    res.status(200).json({ success: true, data: withLinks(req, task) });
   } catch (err) {
     next(err);
   }
@@ -70,7 +86,7 @@ const createTask = async (req, res, next) => {
       user: req.user.id
     });
 
-    res.status(201).json({ success: true, data: task });
+    res.status(201).json({ success: true, data: withLinks(req, task) });
   } catch (err) {
     next(err);
   }
@@ -111,7 +127,7 @@ const updateTask = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Task not found' });
     }
 
-    res.status(200).json({ success: true, data: task });
+    res.status(200).json({ success: true, data: withLinks(req, task) });
   } catch (err) {
     next(err);
   }

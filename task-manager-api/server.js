@@ -10,6 +10,7 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
+const cacheRoutes = require('./routes/cacheRoutes');
 
 const app = express();
 
@@ -49,7 +50,9 @@ app.get('/', (req, res) => {
       deleteTask: "DELETE /tasks/:id (protected)",
       getAllUsers: "GET /users (protected: admin, manager)",
       updateUserRole: "PUT /users/:id/role (protected: admin)",
-      deleteUser: "DELETE /users/:id (protected: admin)"
+      deleteUser: "DELETE /users/:id (protected: admin)",
+      cacheDebug: "GET /api/cache/debug (protected)",
+      flushCache: "DELETE /api/cache (protected)"
     },
     roles: ["user", "manager", "admin"],
     taskStatuses: ["pending", "incomplete", "completed"],
@@ -60,6 +63,7 @@ app.get('/', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/users', userRoutes);
+app.use('/api/cache', cacheRoutes);
 
 // 5. 404 Catch-all Middleware (After all routes)
 app.use(notFound);
