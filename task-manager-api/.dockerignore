@@ -1,0 +1,14 @@
+# Keep secrets, local state and dev artefacts out of the build context
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+Dockerfile
+.dockerignore
+docs
+logs
+exports
+logs.csv
+*.postman_collection.json
+test_rbac_and_status.js

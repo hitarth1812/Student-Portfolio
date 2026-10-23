@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const migrateData = require('./config/migrateData');
@@ -11,6 +12,12 @@ const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cacheRoutes = require('./routes/cacheRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const jobRoutes = require('./routes/jobRoutes');
+
+// Practical 10: register event subscribers and background job handlers at boot
+require('./events/subscribers');
+require('./jobs/jobHandlers');
 
 const app = express();
 
@@ -52,7 +59,17 @@ app.get('/', (req, res) => {
       updateUserRole: "PUT /users/:id/role (protected: admin)",
       deleteUser: "DELETE /users/:id (protected: admin)",
       cacheDebug: "GET /api/cache/debug (protected)",
-      flushCache: "DELETE /api/cache (protected)"
+      flushCache: "DELETE /api/cache (protected)",
+      streamTicket: "POST /api/events/ticket (protected)",
+      eventStream: "GET /api/events/stream?ticket=<ticket> (SSE)",
+      eventHistory: "GET /api/events/history (protected)",
+      eventStats: "GET /api/events/stats (protected)",
+      enqueueJob: "POST /api/jobs (protected, 202 Accepted)",
+      listJobs: "GET /api/jobs (protected)",
+      jobStatus: "GET /api/jobs/:id (protected)",
+      downloadExport: "GET /api/jobs/:id/download (protected)",
+      deadLetterQueue: "GET /api/jobs/dlq (protected)",
+      health: "GET /health (public, used by Docker HEALTHCHECK)"
     },
     roles: ["user", "manager", "admin"],
     taskStatuses: ["pending", "incomplete", "completed"],
@@ -60,10 +77,28 @@ app.get('/', (req, res) => {
   });
 });
 
+// Liveness/readiness probe used by the Docker HEALTHCHECK (Practical 11).
+// Reports 503 until MongoDB is connected so dependants wait for a usable API.
+const DB_STATES = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+app.get('/health', (req, res) => {
+  const dbState = DB_STATES[mongoose.connection.readyState] || 'unknown';
+  const healthy = dbState === 'connected';
+
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'ok' : 'degraded',
+    db: dbState,
+    uptimeSeconds: Math.round(process.uptime()),
+    hostname: require('os').hostname(),
+    node: process.version
+  });
+});
+
 app.use('/auth', authRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/users', userRoutes);
 app.use('/api/cache', cacheRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/jobs', jobRoutes);
 
 // 5. 404 Catch-all Middleware (After all routes)
 app.use(notFound);
@@ -72,8 +107,29 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start Server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// `docker stop` sends SIGTERM: finish in-flight requests and close MongoDB
+// cleanly instead of being killed after the 10 s grace period.
+const shutdown = (signal) => {
+  console.log(`[Server] ${signal} received, shutting down gracefully...`);
+  server.close(async () => {
+    await mongoose.connection.close();
+    console.log('[Server] HTTP server and MongoDB connection closed');
+    process.exit(0);
+  });
+  // Long-lived SSE streams and idle keep-alive sockets (pooled by the Nginx proxy)
+  // would otherwise hold close() open until the fallback timer fires
+  const streams = eventRoutes.closeAllStreams();
+  if (streams) console.log(`[Server] Closed ${streams} open SSE stream(s)`);
+  server.closeIdleConnections();
+  // Hard cap in case a request is still in flight
+  setTimeout(() => process.exit(0), 5000).unref();
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 module.exports = app;

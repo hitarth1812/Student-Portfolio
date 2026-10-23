@@ -3,6 +3,7 @@ import Spinner from "../components/Spinner";
 import { useAuth } from "../context/auth-context";
 import ErrorMessage from "../components/ErrorMessage";
 import TaskSection from "../components/TaskSection";
+import EventPanel from "../components/EventPanel";
 import {
   getTasks,
   createTask,
@@ -33,6 +34,10 @@ function Tasks() {
   const [creating, setCreating] = useState(false);
 
   const [reloadKey, setReloadKey] = useState(0);
+
+  // Practical 10: event-driven drawer (SSE stream, async jobs, telemetry)
+  const [edaOpen, setEdaOpen] = useState(false);
+  const [eventCount, setEventCount] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -72,6 +77,12 @@ function Tasks() {
 
   const loadTasks = useCallback(() => {
     setTaskLoading(true);
+    setReloadKey((k) => k + 1);
+  }, []);
+
+  // A task:* event pushed over SSE (e.g. from another tab) triggers a silent
+  // refetch, so the list stays in sync without a spinner or manual reload.
+  const handleTaskEvent = useCallback(() => {
     setReloadKey((k) => k + 1);
   }, []);
 
@@ -227,7 +238,25 @@ function Tasks() {
             </button>
           </div>
         )}
+
+        <button
+          type="button"
+          className="eda-trigger"
+          id="eda-trigger"
+          onClick={() => setEdaOpen(true)}
+        >
+          <span className="eda-pulse" />
+          Event Stream &amp; Async Jobs
+          <span className="eda-trigger-count">{eventCount}</span>
+        </button>
       </div>
+
+      <EventPanel
+        open={edaOpen}
+        onClose={() => setEdaOpen(false)}
+        onTaskEvent={handleTaskEvent}
+        onCountChange={setEventCount}
+      />
 
       {/* Task Counters Summary Bar */}
       <div className="task-counters-bar" id="task-counters">
