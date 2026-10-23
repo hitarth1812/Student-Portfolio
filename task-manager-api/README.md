@@ -490,3 +490,63 @@ Existing documents with boolean `completed` values are automatically migrated on
 4. **IDOR Prevention**: Normal users attempting to view, update, or delete other users' tasks receive `404 Not Found`.
 5. **Admin Self-Protection**: Admins cannot delete their own account or demote themselves if they are the sole administrator.
 
+
+---
+
+## 12. Event-Driven Architecture & Async Jobs (Practical 10)
+
+Controllers no longer do side work inline. They **publish domain events** on an in-process event bus
+(`events/eventBus.js`, built on Node's `EventEmitter`) and respond immediately; independent
+**subscribers** react on a later tick, each isolated so one failure cannot break the request or the others.
+
+| Subscriber (`events/subscribers.js`) | Reacts to | Output |
+|---|---|---|
+| `auditLogger` | every domain event | `logs/events.csv` |
+| `notificationService` | `user:registered`, `task:high_priority_alert`, `task:status_changed` → completed, `job:completed`, `job:failed` | `logs/notifications.log` (simulated email / push) |
+| `activityMetrics` | task + login events | counters in `/api/events/stats` |
+| `consoleMonitor` | job lifecycle, audit, notifications | server console |
+
+**Async jobs** (`jobs/jobQueue.js`, `jobs/jobHandlers.js`): `POST /api/jobs` returns **202 Accepted** with a
+`Location` header; background workers (`JOB_CONCURRENCY`, default 2) run the job. Failures retry with
+exponential backoff (400 ms, 800 ms, ...) up to `JOB_MAX_ATTEMPTS` (default 3), then move to the **Dead Letter Queue**.
+Job types: `export_csv`, `task_report`, `simulate_failure`.
+
+**Real-time push**: the browser opens a Server-Sent Events stream. `EventSource` cannot send headers, so it first
+exchanges its JWT for a single-use 30-second ticket (`POST /api/events/ticket`), keeping the JWT out of URLs and `logs.csv`.
+Users only receive their own events; admins and managers receive all.
+
+| Method | Route | Purpose |
+|---|---|---|
+| POST | `/api/events/ticket` | Issue a one-time SSE ticket |
+| GET | `/api/events/stream?ticket=` | SSE stream of domain events |
+| GET | `/api/events/history` | Recent events visible to the caller |
+| GET | `/api/events/stats` | Telemetry, topic bindings, queue + notification stats |
+| POST | `/api/jobs` | Enqueue a job → `202 Accepted` |
+| GET | `/api/jobs` · `/api/jobs/:id` | List / poll jobs |
+| GET | `/api/jobs/:id/download` | Download a finished CSV export |
+| GET | `/api/jobs/dlq` | Dead Letter Queue |
+
+Run the end-to-end demo (server must be running): `node scripts/demo-events.js`
+
+---
+
+## 13. Containerization with Docker & Docker Compose (Practical 11)
+
+The whole stack runs from the repo root with one command:
+
+```bash
+docker compose up -d --build
+```
+
+| Service | Image | Host port | Notes |
+|---|---|---|---|
+| `mongodb` | `mongo:7.0` | 27018 | Data in the `mongo-data` named volume; `mongosh ping` healthcheck |
+| `backend` | `awdf-task-manager-api:1.0` (`task-manager-api/Dockerfile`) | 5000 | `node:22-alpine`, `npm ci --omit=dev`, runs as `node` (non-root), `GET /health` healthcheck, graceful SIGTERM shutdown |
+| `frontend` | `awdf-student-portfolio-web:1.0` (`Student_Portfolio/Dockerfile`) | 8080 | Multi-stage: Vite build on Node, then only `dist/` served by `nginx:1.27-alpine` (74 MB) |
+
+- **Startup order** uses healthcheck-gated `depends_on`: backend waits for a healthy MongoDB, frontend waits for a healthy backend.
+- **One origin:** Nginx proxies `/backend/*` to `http://backend:5000/*` over the Compose network (SSE unbuffered), so the browser only talks to `:8080` and needs no CORS. The frontend is built with `VITE_API_URL=/backend`.
+- **Network isolation:** `backend-net` (mongodb + backend) and `frontend-net` (backend + frontend); the frontend container cannot reach the database.
+- **Secrets** (`JWT_SECRET`) come from `task-manager-api/.env` via `env_file` and are never copied into an image (`.dockerignore`).
+
+Verify the running stack (20 checks): `bash task-manager-api/scripts/docker-smoke-test.sh`

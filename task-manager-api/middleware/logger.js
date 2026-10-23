@@ -24,6 +24,11 @@ const csvEscape = (value) => {
 const OBJECT_ID_IN_PATH = /^\/tasks\/([a-fA-F0-9]{24})(?:\/|$)/;
 
 const logger = (req, res, next) => {
+  // Docker HEALTHCHECK probes run every 15 s; logging them would bury real traffic
+  if (req.path === '/health') {
+    return next();
+  }
+
   const timestamp = new Date().toISOString();
   const method = req.method;
   const requestPath = req.originalUrl || req.url;

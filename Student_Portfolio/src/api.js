@@ -1,4 +1,6 @@
-const BASE_URL = 'http://localhost:5000';
+// Baked in at build time. In Docker the frontend is built with VITE_API_URL=/backend
+// so Nginx proxies API calls on the same origin; locally it falls back to :5000.
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const TOKEN_KEY = 'tm_token';
 
@@ -156,3 +158,56 @@ export const deleteUser = async (id) => {
   return body.data;
 };
 
+
+/* ---------- Events & Async Jobs (Practical 10) ---------- */
+
+/**
+ * Opens the Server-Sent Events stream. EventSource cannot send headers, so a
+ * single-use ticket is exchanged for the JWT first and passed in the URL.
+ */
+export const openEventStream = async ({ onEvent, onStatus }) => {
+  const { ticket } = await request('/api/events/ticket', { method: 'POST' });
+  const source = new EventSource(`${BASE_URL}/api/events/stream?ticket=${ticket}`);
+
+  source.addEventListener('connected', () => onStatus('connected'));
+  source.addEventListener('domain-event', (e) => onEvent(JSON.parse(e.data)));
+  // A ticket is single-use, so the browser's auto-reconnect would be rejected:
+  // close and let the caller open a fresh stream instead.
+  source.onerror = () => {
+    source.close();
+    onStatus('disconnected');
+  };
+
+  return () => source.close();
+};
+
+export const getEventHistory = async (limit = 50) => {
+  const body = await request(`/api/events/history?limit=${limit}`);
+  return body.data;
+};
+
+export const getEventStats = async () => {
+  const body = await request('/api/events/stats');
+  return body.data;
+};
+
+export const enqueueJob = async (type) => {
+  return request('/api/jobs', { method: 'POST', body: { type } });
+};
+
+export const getJobs = async () => {
+  const body = await request('/api/jobs');
+  return body.data;
+};
+
+export const downloadJobExport = async (id) => {
+  const response = await fetch(`${BASE_URL}/api/jobs/${id}/download`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+
+  if (!response.ok) {
+    throw new ApiError('Export is not available', response.status);
+  }
+
+  return response.blob();
+};

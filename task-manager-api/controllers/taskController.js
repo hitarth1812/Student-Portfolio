@@ -1,4 +1,8 @@
 const Task = require('../models/Task');
+const { publish, TOPICS } = require('../events/eventBus');
+
+// Every event carries who triggered it, so subscribers and the SSE stream can scope it
+const eventMeta = (req) => ({ actor: req.user.email, userId: req.user.id });
 
 // HATEOAS: attach the actions a client can take next on a single task
 const withLinks = (req, task) => {
@@ -86,6 +90,12 @@ const createTask = async (req, res, next) => {
       user: req.user.id
     });
 
+    // Fire-and-forget: subscribers run after this response is sent
+    publish(TOPICS.TASK_CREATED, { taskId: task._id, title: task.title, priority: task.priority, status: task.status }, eventMeta(req));
+    if (task.priority === 'high') {
+      publish(TOPICS.TASK_HIGH_PRIORITY, { taskId: task._id, title: task.title }, eventMeta(req));
+    }
+
     res.status(201).json({ success: true, data: withLinks(req, task) });
   } catch (err) {
     next(err);
@@ -117,6 +127,9 @@ const updateTask = async (req, res, next) => {
       updates.status = completed ? 'completed' : 'pending';
     }
 
+    // Previous state is needed to tell whether this update is a status transition
+    const before = await Task.findOne(filter).select('status priority').lean();
+
     const task = await Task.findOneAndUpdate(
       filter,
       updates,
@@ -125,6 +138,16 @@ const updateTask = async (req, res, next) => {
 
     if (!task) {
       return res.status(404).json({ success: false, error: 'Task not found' });
+    }
+
+    publish(TOPICS.TASK_UPDATED, { taskId: task._id, title: task.title, changes: Object.keys(updates) }, eventMeta(req));
+
+    if (before && before.status !== task.status) {
+      publish(TOPICS.TASK_STATUS_CHANGED, { taskId: task._id, title: task.title, from: before.status, to: task.status }, eventMeta(req));
+    }
+
+    if (before && before.priority !== 'high' && task.priority === 'high') {
+      publish(TOPICS.TASK_HIGH_PRIORITY, { taskId: task._id, title: task.title }, eventMeta(req));
     }
 
     res.status(200).json({ success: true, data: withLinks(req, task) });
@@ -148,6 +171,8 @@ const deleteTask = async (req, res, next) => {
     if (!task) {
       return res.status(404).json({ success: false, error: 'Task not found' });
     }
+
+    publish(TOPICS.TASK_DELETED, { taskId: task._id, title: task.title }, eventMeta(req));
 
     res.status(200).json({ success: true, message: 'Task deleted successfully', data: task });
   } catch (err) {

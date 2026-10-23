@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { publish, TOPICS } = require('../events/eventBus');
 
 const TOKEN_EXPIRY = process.env.JWT_EXPIRES_IN || '1h';
 
@@ -56,6 +57,8 @@ const register = async (req, res, next) => {
       role: 'user'
     });
 
+    publish(TOPICS.USER_REGISTERED, { name: user.name, email: user.email }, { actor: user.email, userId: String(user._id) });
+
     res.status(201).json({
       success: true,
       message: 'Registration successful',
@@ -86,6 +89,8 @@ const login = async (req, res, next) => {
     if (!isMatch) {
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
     }
+
+    publish(TOPICS.USER_LOGGED_IN, { email: user.email, role: user.role }, { actor: user.email, userId: String(user._id) });
 
     res.status(200).json({
       success: true,
