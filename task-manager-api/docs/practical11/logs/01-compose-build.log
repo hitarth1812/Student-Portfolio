@@ -1,0 +1,152 @@
+PS> docker compose build --progress=plain   (2026-10-23 10:33:24)
+--progress is a global compose flag, better use `docker compose --progress xx build ...
+ Image awdf-student-portfolio-web:1.0 Building 
+ Image awdf-task-manager-api:1.0 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.21kB done
+#1 DONE 0.0s
+
+#2 [frontend internal] load build definition from Dockerfile
+#2 transferring dockerfile: 981B done
+#2 DONE 0.0s
+
+#3 [backend internal] load build definition from Dockerfile
+#3 transferring dockerfile: 828B done
+#3 DONE 0.0s
+
+#4 [frontend internal] load metadata for docker.io/library/node:22-alpine
+#4 DONE 0.0s
+
+#5 [backend internal] load .dockerignore
+#5 transferring context: 263B done
+#5 DONE 0.0s
+
+#6 [backend 1/6] FROM docker.io/library/node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
+#6 resolve docker.io/library/node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 0.0s done
+#6 DONE 0.0s
+
+#7 [backend internal] load build context
+#7 transferring context: 1.77kB done
+#7 DONE 0.0s
+
+#8 [backend 4/6] RUN npm ci --omit=dev && npm cache clean --force
+#8 CACHED
+
+#9 [backend 3/6] COPY package.json package-lock.json ./
+#9 CACHED
+
+#10 [backend 2/6] WORKDIR /app
+#10 CACHED
+
+#11 [backend 5/6] COPY --chown=node:node . .
+#11 CACHED
+
+#12 [backend 6/6] RUN mkdir -p logs exports && chown -R node:node /app
+#12 ...
+
+#13 [frontend internal] load metadata for docker.io/library/nginx:1.27-alpine
+#13 DONE 0.9s
+
+#6 [frontend 1/6] FROM docker.io/library/node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
+#6 resolve docker.io/library/node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 0.0s done
+#6 DONE 0.0s
+
+#14 [frontend internal] load .dockerignore
+#14 transferring context: 111B done
+#14 DONE 0.0s
+
+#10 [frontend 2/6] WORKDIR /app
+#10 CACHED
+
+#15 [frontend internal] load build context
+#15 transferring context: 1.69kB done
+#15 DONE 0.0s
+
+#16 [frontend stage-1 1/3] FROM docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+#16 resolve docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 0.0s done
+#16 DONE 0.0s
+
+#17 [frontend stage-1 2/3] COPY nginx.conf /etc/nginx/conf.d/default.conf
+#17 CACHED
+
+#18 [frontend build 3/7] RUN npm install -g npm@11.6.2
+#18 ...
+
+#12 [backend 6/6] RUN mkdir -p logs exports && chown -R node:node /app
+#12 DONE 2.4s
+
+#19 [backend] exporting to image
+#19 exporting layers
+#19 exporting layers 0.7s done
+#19 exporting manifest sha256:4f34806bc59835ff82880d5fc24273e30e7bbe15b3f3d54379cef8f3f1249464 0.0s done
+#19 exporting config sha256:edbc531913cda4c9a6ca90e1a0ffdbee98af625c96681c9e8ff61f36ee3e32cf done
+#19 exporting attestation manifest sha256:ee648622dd60a884537210db4dca0f6d2f18e1f2862023c83d54ebd8b2b99864 0.0s done
+#19 exporting manifest list sha256:74d8137bb2e77ec754332340f8352c7a05cf180620f416f400ae4f1268fcf429 done
+#19 naming to docker.io/library/awdf-task-manager-api:1.0 done
+#19 unpacking to docker.io/library/awdf-task-manager-api:1.0
+#19 unpacking to docker.io/library/awdf-task-manager-api:1.0 0.6s done
+#19 DONE 1.4s
+
+#20 [backend] resolving provenance for metadata file
+#20 DONE 0.0s
+
+#18 [frontend build 3/7] RUN npm install -g npm@11.6.2
+#18 9.681 
+#18 9.681 removed 11 packages, and changed 70 packages in 9s
+#18 9.681 
+#18 9.681 28 packages are looking for funding
+#18 9.681   run `npm fund` for details
+#18 DONE 9.8s
+
+#21 [frontend build 4/7] COPY package.json package-lock.json ./
+#21 DONE 0.0s
+
+#22 [frontend build 5/7] RUN npm ci --no-audit --no-fund
+#22 4.686 
+#22 4.686 added 145 packages in 4s
+#22 4.688 npm notice
+#22 4.688 npm notice New major version of npm available! 11.6.2 -> 12.2.1
+#22 4.688 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+#22 4.688 npm notice To update run: npm install -g npm@12.2.1
+#22 4.688 npm notice
+#22 DONE 4.8s
+
+#23 [frontend build 6/7] COPY . .
+#23 DONE 0.1s
+
+#24 [frontend build 7/7] RUN npm run build
+#24 0.313 
+#24 0.313 > student-portfolio@0.0.0 build
+#24 0.313 > vite build
+#24 0.313 
+#24 0.802 vite v8.1.4 building client environment for production...
+#24 0.818 [2Ktransforming...✓ 50 modules transformed.
+#24 2.173 rendering chunks...
+#24 2.263 computing gzip size...
+#24 2.268 dist/index.html                     0.76 kB │ gzip:  0.41 kB
+#24 2.268 dist/assets/index-bECm_Qlr.css     31.38 kB │ gzip:  5.92 kB
+#24 2.268 dist/assets/Contact-DAJDJeIB.js     4.57 kB │ gzip:  1.77 kB
+#24 2.268 dist/assets/Projects-BlvUNzpE.js    5.10 kB │ gzip:  2.21 kB
+#24 2.268 dist/assets/index-C5IK4dh5.js     277.88 kB │ gzip: 87.81 kB
+#24 2.268 
+#24 2.269 ✓ built in 1.47s
+#24 DONE 2.3s
+
+#25 [frontend stage-1 3/3] COPY --from=build /app/dist /usr/share/nginx/html
+#25 DONE 0.0s
+
+#26 [frontend] exporting to image
+#26 exporting layers 0.1s done
+#26 exporting manifest sha256:b429ccdbfc852191c5f2646c353094a6e6fec066a9f4749f1a47b519239c2080 0.0s done
+#26 exporting config sha256:64c54c6a7b644cf09a326fba72b415eec0a9697d9c19a38c0f730321e29ab19f done
+#26 exporting attestation manifest sha256:0f99dee2a57faec288cabf5f0bd721366569039ec9ccb63b6e60991d493dcb54 0.0s done
+#26 exporting manifest list sha256:5f363b0836b01556768f1f57d95605506d73af622a6ee72087cd3bc24c14e38c done
+#26 naming to docker.io/library/awdf-student-portfolio-web:1.0 done
+#26 unpacking to docker.io/library/awdf-student-portfolio-web:1.0 0.0s done
+#26 DONE 0.2s
+
+#27 [frontend] resolving provenance for metadata file
+#27 DONE 0.0s
+ Image awdf-task-manager-api:1.0 Built 
+ Image awdf-student-portfolio-web:1.0 Built 
+exit code: 0

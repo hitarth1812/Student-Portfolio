@@ -1,0 +1,25 @@
+PS> docker images (project images)
+REPOSITORY                        TAG         IMAGE ID       SIZE
+awdf-task-manager-api             1.0         4a93d993d76e   289MB
+awdf-student-portfolio-web        1.0         e3e3f865b025   74.1MB
+mongo                             7.0         c53852c00c23   1.18GB
+
+PS> docker stats --no-stream
+NAME            CPU %     MEM USAGE / LIMIT     NET I/O           PIDS
+awdf-backend    0.17%     31.03MiB / 11.54GiB   12.6kB / 11.2kB   11
+awdf-frontend   0.00%     17.71MiB / 11.54GiB   69.2kB / 856kB    21
+awdf-mongodb    0.37%     174.3MiB / 11.54GiB   8.32kB / 6.45kB   41
+
+PS> docker inspect (health / restart policy / user)
+/awdf-mongodb  health=healthy  restart=unless-stopped  user=root
+/awdf-backend  health=healthy  restart=unless-stopped  user=node
+/awdf-frontend  health=healthy  restart=unless-stopped  user=root
+
+PS> docker network ls / docker volume ls (project)
+awdf-student-portfolio_backend-net  (bridge)
+awdf-student-portfolio_frontend-net  (bridge)
+awdf-student-portfolio_backend-logs  (local)
+awdf-student-portfolio_mongo-data  (local)
+
+network backend-net members: awdf-mongodb awdf-backend 
+network frontend-net members: awdf-backend awdf-frontend 

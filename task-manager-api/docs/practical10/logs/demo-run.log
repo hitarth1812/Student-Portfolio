@@ -1,0 +1,59 @@
+
+=== Practical 10 demo against http://localhost:5000 ===
+
+1. Authenticated as p10.demo@example.test (HTTP 200)
+  [SSE] connected: SSE stream connected
+
+2. Task actions (each publishes domain events)
+   POST /tasks -> 201 in 20.2 ms
+  [SSE] task:created               {"taskId":"6adae4d58e755c96474e6849","title":"Practical 10 - Event Driven Architecture","priority":"high","status":"pending"}
+  [SSE] task:high_priority_alert   {"taskId":"6adae4d58e755c96474e6849","title":"Practical 10 - Event Driven Architecture"}
+  [SSE] notification:dispatched    {"channel":"push","to":"p10.demo@example.test","message":"High priority task: \"Practical 10 - Event Driven Architecture\""}
+   PUT /tasks/:id (status=completed) -> 200 in 48.3 ms
+  [SSE] task:updated               {"taskId":"6adae4d58e755c96474e6849","title":"Practical 10 - Event Driven Architecture","changes":["status","completed"]}
+  [SSE] task:status_changed        {"taskId":"6adae4d58e755c96474e6849","title":"Practical 10 - Event Driven Architecture","from":"pending","to":"completed"}
+  [SSE] notification:dispatched    {"channel":"push","to":"p10.demo@example.test","message":"Task \"Practical 10 - Event Driven Architecture\" marked completed"}
+  [SSE] task:created               {"taskId":"6adae4d58e755c96474e684f","title":"Temporary task to delete","priority":"low","status":"pending"}
+   DELETE /tasks/:id -> 200 in 9.9 ms
+  [SSE] task:deleted               {"taskId":"6adae4d58e755c96474e684f","title":"Temporary task to delete"}
+  [SSE] audit:logged               {"sourceEvent":"evt-1792730326003-485eb4","topic":"task:deleted"}
+
+3. Async jobs (HTTP 202 Accepted, processed by background workers)
+   POST /api/jobs {type:export_csv} -> 202 in 6.8 ms, Location: /api/jobs/job-1792730326523-d684b3
+  [SSE] job:enqueued               {"jobId":"job-1792730326523-d684b3","type":"export_csv"}
+  [SSE] job:started                {"jobId":"job-1792730326523-d684b3","type":"export_csv","attempt":1}
+  [SSE] job:progress               {"jobId":"job-1792730326523-d684b3","progress":10,"message":"Querying tasks from MongoDB..."}
+   POST /api/jobs {type:task_report} -> 202 in 5.7 ms, Location: /api/jobs/job-1792730326530-795d92
+  [SSE] job:enqueued               {"jobId":"job-1792730326530-795d92","type":"task_report"}
+  [SSE] job:started                {"jobId":"job-1792730326530-795d92","type":"task_report","attempt":1}
+  [SSE] job:progress               {"jobId":"job-1792730326530-795d92","progress":20,"message":"Aggregating tasks by status and priority..."}
+   POST /api/jobs {type:simulate_failure} -> 202 in 7.4 ms, Location: /api/jobs/job-1792730326537-0afa5e
+  [SSE] job:enqueued               {"jobId":"job-1792730326537-0afa5e","type":"simulate_failure"}
+  [SSE] job:progress               {"jobId":"job-1792730326523-d684b3","progress":50,"message":"Serialising 2 tasks to CSV..."}
+  [SSE] job:progress               {"jobId":"job-1792730326530-795d92","progress":80,"message":"Computing completion rate..."}
+  [SSE] job:progress               {"jobId":"job-1792730326523-d684b3","progress":85,"message":"Writing export file..."}
+  [SSE] job:completed              {"jobId":"job-1792730326530-795d92","type":"task_report","durationMs":1025,"owner":"6adae3ba1b4c5d78633bea7c"}
+  [SSE] notification:dispatched    {"channel":"email","to":"p10.demo@example.test","message":"Your task_report job finished in 1025 ms"}
+  [SSE] job:started                {"jobId":"job-1792730326537-0afa5e","type":"simulate_failure","attempt":1}
+  [SSE] job:progress               {"jobId":"job-1792730326537-0afa5e","progress":30,"message":"Simulating unstable remote microservice..."}
+  [SSE] job:completed              {"jobId":"job-1792730326523-d684b3","type":"export_csv","durationMs":1041,"owner":"6adae3ba1b4c5d78633bea7c"}
+  [SSE] notification:dispatched    {"channel":"email","to":"p10.demo@example.test","message":"Your export_csv job finished in 1041 ms"}
+   export_csv        COMPLETED attempts=1 | 202 returned in 6.8 ms vs job ran 1041 ms
+   task_report       COMPLETED attempts=1 | 202 returned in 5.7 ms vs job ran 1025 ms
+     report: {"total":2,"byStatus":{"completed":2},"byPriority":{"high":2},"completionRate":"100.0%"}
+  [SSE] job:retry                  {"jobId":"job-1792730326537-0afa5e","attempt":1,"nextAttemptInMs":400,"error":"Remote microservice timed out (simulated)"}
+  [SSE] job:started                {"jobId":"job-1792730326537-0afa5e","type":"simulate_failure","attempt":2}
+  [SSE] job:progress               {"jobId":"job-1792730326537-0afa5e","progress":30,"message":"Simulating unstable remote microservice..."}
+  [SSE] job:retry                  {"jobId":"job-1792730326537-0afa5e","attempt":2,"nextAttemptInMs":800,"error":"Remote microservice timed out (simulated)"}
+  [SSE] job:started                {"jobId":"job-1792730326537-0afa5e","type":"simulate_failure","attempt":3}
+  [SSE] job:progress               {"jobId":"job-1792730326537-0afa5e","progress":30,"message":"Simulating unstable remote microservice..."}
+  [SSE] job:failed                 {"jobId":"job-1792730326537-0afa5e","type":"simulate_failure","attempts":3,"error":"Remote microservice timed out (simulated)","owner":"6adae3ba1b4c5d78633bea7c"}
+  [SSE] notification:dispatched    {"channel":"email","to":"p10.demo@example.test","message":"Job job-1792730326537-0afa5e failed after 3 attempts and was moved to the DLQ"}
+   simulate_failure  FAILED    attempts=3 | 202 returned in 7.4 ms vs job ran 2164 ms | error: Remote microservice timed out (simulated)
+
+4. GET /api/jobs/:id/download -> 200, 2 CSV rows
+5. GET /api/jobs/dlq -> 1 job(s) in the Dead Letter Queue
+6. GET /api/events/stats -> emitted=37, avgHandlerMs=7.85, notifications=5, dlq=1, subscriberErrors=0
+   activity: {"tasksCreated":2,"tasksUpdated":1,"tasksDeleted":1,"tasksCompleted":1,"logins":2}
+
+SSE events received by this client: 33

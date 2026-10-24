@@ -1,0 +1,16 @@
+PS> docker compose stop backend   (graceful shutdown test, 2026-10-23 10:38:51)
+ Container awdf-backend Stopping 
+ Container awdf-backend Stopped 
+stop completed in 1079 ms, exit code 0
+
+PS> docker compose logs --no-color --tail 4 backend
+awdf-backend  | [Server] SIGTERM received, shutting down gracefully...
+awdf-backend  | [Server] Closed 1 open SSE stream(s)
+awdf-backend  | [SSE] client disconnected: p10.demo@example.test
+awdf-backend  | [Server] HTTP server and MongoDB connection closed
+
+PS> docker compose start backend
+ Container awdf-mongodb Waiting 
+ Container awdf-mongodb Healthy 
+ Container awdf-backend Starting 
+ Container awdf-backend Started 

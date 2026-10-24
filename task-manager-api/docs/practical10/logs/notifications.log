@@ -1,0 +1,18 @@
+[2026-10-23T04:34:02.969Z] EMAIL -> p10.demo@example.test: Welcome aboard, P10 Demo!
+[2026-10-23T04:34:03.336Z] PUSH -> p10.demo@example.test: High priority task: "Practical 10 - Event Driven Architecture"
+[2026-10-23T04:34:03.389Z] PUSH -> p10.demo@example.test: Task "Practical 10 - Event Driven Architecture" marked completed
+[2026-10-23T04:34:04.963Z] EMAIL -> p10.demo@example.test: Your task_report job finished in 1027 ms
+[2026-10-23T04:34:04.970Z] EMAIL -> p10.demo@example.test: Your export_csv job finished in 1042 ms
+[2026-10-23T04:34:07.119Z] EMAIL -> p10.demo@example.test: Job job-1792730043937-4746f9 failed after 3 attempts and was moved to the DLQ
+[2026-10-23T04:38:45.931Z] PUSH -> p10.demo@example.test: High priority task: "Practical 10 - Event Driven Architecture"
+[2026-10-23T04:38:45.980Z] PUSH -> p10.demo@example.test: Task "Practical 10 - Event Driven Architecture" marked completed
+[2026-10-23T04:38:47.557Z] EMAIL -> p10.demo@example.test: Your task_report job finished in 1025 ms
+[2026-10-23T04:38:47.566Z] EMAIL -> p10.demo@example.test: Your export_csv job finished in 1041 ms
+[2026-10-23T04:38:49.724Z] EMAIL -> p10.demo@example.test: Job job-1792730326537-0afa5e failed after 3 attempts and was moved to the DLQ
+[2026-10-23T04:38:56.911Z] PUSH -> p10.demo@example.test: High priority task: "Implement SSE live stream endpoint"
+[2026-10-23T04:38:56.921Z] PUSH -> p10.demo@example.test: High priority task: "Add retry with backoff and DLQ"
+[2026-10-23T04:39:06.905Z] PUSH -> p10.demo@example.test: High priority task: "Review event-driven architecture with mentor"
+[2026-10-23T04:39:08.435Z] PUSH -> p10.demo@example.test: Task "Add retry with backoff and DLQ" marked completed
+[2026-10-23T04:39:13.047Z] EMAIL -> p10.demo@example.test: Your export_csv job finished in 1022 ms
+[2026-10-23T04:39:13.206Z] EMAIL -> p10.demo@example.test: Your task_report job finished in 1025 ms
+[2026-10-23T04:39:15.198Z] EMAIL -> p10.demo@example.test: Job job-1792730352331-14225b failed after 3 attempts and was moved to the DLQ

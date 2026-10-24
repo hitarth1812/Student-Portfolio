@@ -1,0 +1,31 @@
+PS> docker compose logs --no-color --tail 30 backend
+awdf-backend  | [Monitor] job:progress {"jobId":"job-1792732142579-b1c631","progress":20,"message":"Aggregating tasks by status and priority..."}
+awdf-backend  | [2026-10-23T05:09:02.665Z]
+awdf-backend  | POST /api/events/ticket
+awdf-backend  | [2026-10-23T05:09:02.831Z]
+awdf-backend  | GET /api/events/stream?ticket=891c6b9c81c2fb28ee3df2db9becf171aae37ed5b9458cf7
+awdf-backend  | [SSE] client connected: p11.docker@example.test
+awdf-backend  | [EventBus] 2026-10-23T05:09:03.286Z job:progress evt-1792732143286-5cbfb6 actor=p11.docker@example.test
+awdf-backend  | [Monitor] job:progress {"jobId":"job-1792732142579-b1c631","progress":80,"message":"Computing completion rate..."}
+awdf-backend  | [SSE] client disconnected: p11.docker@example.test
+awdf-backend  | [EventBus] 2026-10-23T05:09:03.587Z job:completed evt-1792732143587-16c421 actor=p11.docker@example.test
+awdf-backend  | [EventBus] 2026-10-23T05:09:03.587Z notification:dispatched evt-1792732143587-dc3d9e actor=notificationService
+awdf-backend  | [Monitor] notification:dispatched {"channel":"email","to":"p11.docker@example.test","message":"Your task_report job finished in 1007 ms"}
+awdf-backend  | [Server] SIGTERM received, shutting down gracefully...
+awdf-backend  | [Server] Closed 1 open SSE stream(s)
+awdf-backend  | [SSE] client disconnected: p10.demo@example.test
+awdf-backend  | [Server] HTTP server and MongoDB connection closed
+awdf-backend  | Server running on port 5000
+awdf-backend  | [MongoDB] Connected: mongodb/task-manager
+awdf-backend  | [2026-10-23T05:09:14.957Z]
+awdf-backend  | POST /api/events/ticket
+awdf-backend  | [2026-10-23T05:09:14.968Z]
+awdf-backend  | GET /api/events/stream?ticket=df5681d1f86bb0a2fe2a61eb9c2b392f672a028865080f90
+awdf-backend  | [SSE] client connected: p10.demo@example.test
+awdf-backend  | [2026-10-23T05:09:17.770Z]
+awdf-backend  | POST /auth/login
+awdf-backend  | [EventBus] 2026-10-23T05:09:17.872Z user:logged_in evt-1792732157872-5615b2 actor=p11.docker@example.test
+awdf-backend  | [EventBus] 2026-10-23T05:09:17.877Z audit:logged evt-1792732157877-0b28cd actor=auditLogger
+awdf-backend  | [Monitor] audit:logged {"sourceEvent":"evt-1792732157872-5615b2","topic":"user:logged_in"}
+awdf-backend  | [2026-10-23T05:09:18.096Z]
+awdf-backend  | GET /tasks/6adaebedc651a52b08df271d
