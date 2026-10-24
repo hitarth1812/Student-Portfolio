@@ -13,7 +13,7 @@ describe('Cache store (Practical 9)', () => {
     cacheStore.recordHit();
     const stats = cacheStore.getStats();
     assert.equal(stats.totalRequests, 3);
-    assert.equal(stats.hitRatio, '75.00%'); // deliberately wrong: 2 hits of 3 requests is 66.67%
+    assert.equal(stats.hitRatio, '66.67%'); // 2 hits of 3 requests
   });
 
   it('invalidates every cached task list plus the single task on write', () => {
