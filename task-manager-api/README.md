@@ -550,3 +550,28 @@ docker compose up -d --build
 - **Secrets** (`JWT_SECRET`) come from `task-manager-api/.env` via `env_file` and are never copied into an image (`.dockerignore`).
 
 Verify the running stack (20 checks): `bash task-manager-api/scripts/docker-smoke-test.sh`
+
+---
+
+## 14. Automated Testing & CI/CD (Practical 12)
+
+`npm test` runs the suite with Node's built-in runner (`node --test`, no extra dependencies) - **25 tests** in `tests/`:
+
+| File | Covers |
+|---|---|
+| `validation.test.js` | `validateTask`, `validateAuthInput`, `validateObjectId` |
+| `auth.test.js` | JWT middleware: missing, forged, expired and valid tokens |
+| `cache-events.test.js` | node-cache hit ratio + invalidation, event bus async delivery and subscriber isolation |
+| `jobs.test.js` | job queue: 202-style enqueue, retry with backoff, Dead Letter Queue |
+| `api.test.js` | the real Express app over HTTP (`app.js` on an ephemeral port): health, 401/400/415/404 envelopes |
+
+`app.js` builds the Express app; `server.js` only connects MongoDB, listens and handles shutdown, which is what lets the tests import the app without a database.
+
+**Pipeline** - `.github/workflows/ci.yml` runs on every push and pull request:
+
+1. **Backend - Test & Boot**: `npm ci`, `npm test`, then boots `server.js` against a MongoDB service container and probes `/health`.
+2. **Frontend - Lint & Build**: `npm ci`, ESLint, `vite build`, uploads `dist/` as an artifact.
+3. **Docker Compose - Integration Test** (after 1 + 2): builds both images, starts the full stack with `--wait`, runs `scripts/docker-smoke-test.sh`.
+4. **CD - Publish images to GHCR** (pushes to `main` only): tags both images `latest` + commit SHA and pushes them to `ghcr.io`.
+
+Test and smoke-test output is written to each run's summary page.

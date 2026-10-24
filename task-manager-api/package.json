@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test_rbac_and_status.js"
+    "test": "node --test --test-reporter=spec \"tests/**/*.test.js\"",
+    "test:e2e": "node test_rbac_and_status.js"
   },
   "keywords": [
     "express",
@@ -25,5 +26,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.6.0",
     "node-cache": "^5.1.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

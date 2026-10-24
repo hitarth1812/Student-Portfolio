@@ -97,7 +97,9 @@ const publish = (topic, payload = {}, meta = {}) => {
     history.pop();
   }
 
-  console.log(`[EventBus] ${event.timestamp} ${topic} ${event.id} actor=${event.actor}`);
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(`[EventBus] ${event.timestamp} ${topic} ${event.id} actor=${event.actor}`);
+  }
 
   emitter.emit(topic, event);
   wildcardListeners.forEach((listener) => {

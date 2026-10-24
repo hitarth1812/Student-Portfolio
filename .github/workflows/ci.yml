@@ -1,0 +1,173 @@
+# CI/CD pipeline (Practical 12)
+#   CI  - every push / pull request: backend tests, frontend lint + build, full Docker stack test
+#   CD  - pushes to main only: publish the two Docker images to GitHub Container Registry
+name: Task Manager CI/CD
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push to the same branch cancels the run that is now out of date
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend - Test & Boot
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: task-manager-api
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      JWT_SECRET: ci-only-secret-not-used-anywhere-else
+      MONGO_URI: mongodb://localhost:27017/task-manager-ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: task-manager-api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run automated tests (node --test)
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.txt
+
+      - name: Publish test report to the run summary
+        if: always()
+        run: |
+          {
+            echo "### Backend tests (node --test)"
+            echo '```'
+            grep -vE '^\[EventBus\]' test-output.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Boot the API against MongoDB and probe /health
+        run: |
+          node server.js > server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:5000/health; then echo; echo "API healthy"; exit 0; fi
+            sleep 1
+          done
+          echo "API did not become healthy"; cat server.log; exit 1
+
+  frontend:
+    name: Frontend - Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Student_Portfolio
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Student_Portfolio/package-lock.json
+
+      # The lock file is written by npm 11 (see Student_Portfolio/Dockerfile)
+      - name: Use npm 11
+        run: npm install -g npm@11.6.2
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: Student_Portfolio/dist
+          retention-days: 7
+
+  docker:
+    name: Docker Compose - Integration Test
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      # docker-compose.yml reads task-manager-api/.env; CI generates a throwaway one
+      - name: Create CI environment file
+        run: |
+          cp task-manager-api/.env.example task-manager-api/.env
+          sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$(openssl rand -hex 32)|" task-manager-api/.env
+
+      - name: Build images and start the stack
+        run: docker compose up -d --build --wait --wait-timeout 180
+
+      - name: Run the Practical 11 smoke test against the stack
+        run: |
+          set -o pipefail
+          bash task-manager-api/scripts/docker-smoke-test.sh 2>&1 | tee smoke-output.txt
+
+      - name: Publish smoke test report to the run summary
+        if: always()
+        run: |
+          {
+            echo "### Docker Compose smoke test"
+            echo '```'
+            cat smoke-output.txt 2>/dev/null || echo "(smoke test did not run)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Show container status and logs
+        if: always()
+        run: |
+          docker compose ps
+          docker compose logs --no-color --tail 50
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
+  publish:
+    name: CD - Publish images to GHCR
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push both images (tagged latest + commit SHA)
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          for svc in api:task-manager-api web:Student_Portfolio; do
+            name=${svc%%:*}; dir=${svc#*:}
+            image=ghcr.io/$OWNER/student-portfolio-$name
+            docker build -t $image:latest -t $image:${{ github.sha }} $dir
+            docker push --all-tags $image
+          done
