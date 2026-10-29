@@ -7,6 +7,7 @@
 const mongoose = require('mongoose');
 const app = require('../app');
 const migrateData = require('../config/migrateData');
+const { mongoOptions } = require('../config/db'); // also maps MONGODB_URI -> MONGO_URI
 
 let ready = null;
 
@@ -18,7 +19,7 @@ const sendJson = (res, status, body) => {
 };
 
 const connect = async () => {
-  await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 8000 });
+  await mongoose.connect(process.env.MONGO_URI, { ...mongoOptions(), serverSelectionTimeoutMS: 8000 });
   console.log(`[MongoDB] Connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
   await migrateData();
 };

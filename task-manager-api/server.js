@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const mongoose = require('mongoose');
-const connectDB = require('./config/db');
+const connectDB = require('./config/db'); // also maps MONGODB_URI -> MONGO_URI
 const migrateData = require('./config/migrateData');
 const app = require('./app');
 const eventRoutes = require('./routes/eventRoutes');
