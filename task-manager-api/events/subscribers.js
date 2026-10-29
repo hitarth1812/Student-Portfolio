@@ -7,7 +7,7 @@ const { TOPICS, subscribe, publish } = require('./eventBus');
  * Each subscriber reacts to events independently. None of them is called by the
  * controllers directly - adding or removing one never touches the request code.
  */
-const LOG_DIR = path.join(__dirname, '..', 'logs');
+const { LOG_DIR } = require('../config/paths');
 const EVENT_LOG = path.join(LOG_DIR, 'events.csv');
 const NOTIFICATION_LOG = path.join(LOG_DIR, 'notifications.log');
 

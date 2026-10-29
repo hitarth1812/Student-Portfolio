@@ -1,5 +1,5 @@
 // Baked in at build time. In Docker the frontend is built with VITE_API_URL=/backend
-// so Nginx proxies API calls on the same origin; on Vercel it is the Railway URL;
+// so Nginx proxies API calls on the same origin; on Vercel it is the backend project's URL;
 // locally it falls back to :5000. A trailing slash is tolerated.
 const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
