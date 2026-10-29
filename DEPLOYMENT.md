@@ -45,7 +45,7 @@ Do not run `vercel deploy` from inside the folder: with Root Directory set, Verc
 | `JWT_SECRET` | long random string, e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` (secret) |
 | `CORS_ORIGINS` | set in step 4 |
 | `GEMINI_API_KEY` | optional (secret) |
-| `GEMINI_MODEL` | `gemini-2.5-flash` (default if unset) |
+| `GEMINI_MODEL` | `gemini-3.8-flash` (default if unset) |
 
 Check `https://<backend>.vercel.app/health` → `{"status":"ok","db":"connected"}`.
 If a variable is missing the API answers `500 Server misconfigured: ... not set`; if Atlas is unreachable, `503`.

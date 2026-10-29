@@ -19,7 +19,7 @@ const PRIORITIES = ['low', 'medium', 'high'];
 
 const config = () => ({
   apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '',
-  model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+  model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   enabled: process.env.AI_ENABLED !== 'false'
 });
 
@@ -142,12 +142,15 @@ const callGemini = async ({ title, description }, { apiKey, model }, fetchImpl =
         contents: [{ role: 'user', parts: [{ text: buildPrompt(title, description) }] }],
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 600,
+          // Room for 3.x's "low" thinking tokens, which count towards this limit
+          maxOutputTokens: 2048,
           responseMimeType: 'application/json',
           responseSchema: RESPONSE_SCHEMA,
-          // 2.5-series models "think" by default (seconds of extra latency); this is a
-          // short structured task, so thinking is switched off. Other models reject the field.
-          ...(/^gemini-2\.5-/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {})
+          // 2.5 and 3.x models "think" by default (seconds of extra latency); this is a
+          // short structured task, so thinking is kept to the minimum each series accepts
+          // (2.5: budget 0; 3.x: level "low", it rejects "minimal"). Other models reject the field.
+          ...(/^gemini-2\.5-/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+          ...(/^gemini-3\./.test(model) ? { thinkingConfig: { thinkingLevel: 'low' } } : {})
         }
       }),
       signal: controller.signal
