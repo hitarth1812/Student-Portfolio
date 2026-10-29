@@ -8,7 +8,7 @@ const { registerHandler } = require('./jobQueue');
  * and returns the result object stored on the job. The small sleeps stand in
  * for slow work (report rendering, a remote API) so the async flow is visible.
  */
-const EXPORT_DIR = path.join(__dirname, '..', 'exports');
+const { EXPORT_DIR } = require('../config/paths');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const csvCell = (value) => {

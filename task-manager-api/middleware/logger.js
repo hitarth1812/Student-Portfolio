@@ -1,12 +1,12 @@
 const fs = require('fs');
-const path = require('path');
+const { REQUEST_LOG } = require('../config/paths');
 
 /**
  * Logger Middleware
  * Logs timestamp, HTTP method, and requested URL to the console, and appends
  * the same request as a row to logs.csv for lab evidence / auditing.
  */
-const LOG_FILE = path.join(__dirname, '..', 'logs.csv');
+const LOG_FILE = REQUEST_LOG;
 const CSV_HEADER = 'timestamp,method,path,task_id\n';
 
 // Ensure the file exists with a header the first time this module loads

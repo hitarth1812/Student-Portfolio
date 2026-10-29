@@ -1,0 +1,18 @@
+# Never upload secrets or local runtime state; only the API source is deployed
+.env
+.env.*
+!.env.example
+node_modules
+logs
+logs.csv
+exports
+cache/*.json
+docs
+tests
+scripts
+Dockerfile
+.dockerignore
+railway.json
+*.postman_collection.json
+test_rbac_and_status.js
+server.log

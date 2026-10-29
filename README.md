@@ -8,9 +8,9 @@ This repository contains the Student Portfolio web application built using React
 - `task-manager-api/`: Express + MongoDB REST API used by the Tasks page.
 - `docker-compose.yml`: Runs MongoDB, the API and the frontend together.
 
-## Deploy (Vercel + Railway)
+## Deploy (Vercel)
 
-Frontend on Vercel, backend on Railway, database on MongoDB Atlas. Step-by-step guide: [DEPLOYMENT.md](DEPLOYMENT.md).
+Frontend and backend as two Vercel projects from this repo, database on MongoDB Atlas. Step-by-step guide: [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Run with Docker
 

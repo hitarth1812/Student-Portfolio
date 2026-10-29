@@ -23,7 +23,7 @@ require('./jobs/jobHandlers');
 
 const app = express();
 
-// Railway's edge proxy (and the Nginx container) sit in front of the API as one reverse proxy
+// Vercel's edge network (and the Nginx container) sit in front of the API as one reverse proxy
 app.set('trust proxy', 1);
 
 // 1. CORS + Body Parser Middleware
