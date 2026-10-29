@@ -1,6 +1,9 @@
 // Shared test setup: must run before any app module is required
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'ci-test-secret';
+// Tests must never call the real AI provider (cost, flakiness, data leaving the machine)
+delete process.env.GEMINI_API_KEY;
+delete process.env.GOOGLE_API_KEY;
 
 /**
  * Minimal Express-like response double that records what a middleware sent.

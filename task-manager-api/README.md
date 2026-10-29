@@ -575,3 +575,25 @@ Verify the running stack (20 checks): `bash task-manager-api/scripts/docker-smok
 4. **CD - Publish images to GHCR** (pushes to `main` only): tags both images `latest` + commit SHA and pushes them to `ghcr.io`.
 
 Test and smoke-test output is written to each run's summary page.
+
+---
+
+## 15. AI Task Assistant & Responsible AI (Practical 13)
+
+The **✨ AI Suggest** button in the task form asks the backend for a suggested priority, due date, clearer description and action steps. The user reviews the suggestion and chooses **Apply** or **Dismiss**; nothing is changed automatically.
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /api/ai/suggest` `{ title, description? }` | Validated suggestion from Google Gemini, or the rule-based fallback |
+| `GET /api/ai/status` | Provider/model and whether a key is configured (the key itself is never returned) |
+
+Responsible-AI safeguards (`services/aiService.js`, `routes/aiRoutes.js`):
+
+- **Key stays on the server**: `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) is read from the backend environment and sent in the `x-goog-api-key` header, never in a URL, never to the browser, never baked into an image.
+- **Data minimisation and redaction**: only the title and description are sent, truncated to 500 characters, after removing emails, phone numbers, card numbers, API keys/JWTs and `password:` values.
+- **Output is validated, not trusted**: Gemini is asked for a JSON schema, and the reply must also pass server-side checks (priority enum, 0-60 day due date, length limits) or it is discarded.
+- **Graceful degradation**: no key, `AI_ENABLED=false`, a 10 s timeout, HTTP errors or invalid output all fall back to a deterministic rule-based suggester, and the UI says so.
+- **Cost and abuse control**: 10 requests per user per minute (`429` + `Retry-After`), and identical prompts are cached for 10 minutes.
+- **Audit without content**: every call publishes an `ai:suggestion` event (source, model, latency, cached, redactions, fallback reason) to `logs/events.csv`. The task text itself is never logged.
+
+Tests (`tests/ai.test.js`) mock the provider, so they are free, deterministic and run in CI without a key; `tests/helpers.js` removes any real key from the test environment.

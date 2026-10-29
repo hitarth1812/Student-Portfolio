@@ -15,6 +15,7 @@ const userRoutes = require('./routes/userRoutes');
 const cacheRoutes = require('./routes/cacheRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const jobRoutes = require('./routes/jobRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 // Practical 10: register event subscribers and background job handlers at boot
 require('./events/subscribers');
@@ -22,8 +23,24 @@ require('./jobs/jobHandlers');
 
 const app = express();
 
+// Railway's edge proxy (and the Nginx container) sit in front of the API as one reverse proxy
+app.set('trust proxy', 1);
+
 // 1. CORS + Body Parser Middleware
-app.use(cors());
+// CORS_ORIGINS is a comma-separated allow-list for production, e.g.
+// "https://my-portfolio.vercel.app,https://my-portfolio-*.vercel.app"
+// ("*" matches one subdomain label, for Vercel preview deployments).
+// Unset = allow any origin (local dev, Docker same-origin proxy, tests).
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean)
+  .map((o) => new RegExp('^' + o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[a-z0-9-]+') + '$', 'i'));
+
+app.use(cors(allowedOrigins.length === 0 ? {} : {
+  // Requests without an Origin header (curl, health checks) are not browser CORS requests
+  origin: (origin, callback) => callback(null, !origin || allowedOrigins.some((re) => re.test(origin)))
+}));
 app.use(express.json());
 
 // 2. Global Logging Middleware
@@ -57,7 +74,9 @@ app.get('/', (req, res) => {
       jobStatus: "GET /api/jobs/:id (protected)",
       downloadExport: "GET /api/jobs/:id/download (protected)",
       deadLetterQueue: "GET /api/jobs/dlq (protected)",
-      health: "GET /health (public, used by Docker HEALTHCHECK)"
+      health: "GET /health (public, used by Docker HEALTHCHECK)",
+      aiStatus: "GET /api/ai/status (protected)",
+      aiSuggest: "POST /api/ai/suggest (protected, rate limited)"
     },
     roles: ["user", "manager", "admin"],
     taskStatuses: ["pending", "incomplete", "completed"],
@@ -87,6 +106,7 @@ app.use('/users', userRoutes);
 app.use('/api/cache', cacheRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/jobs', jobRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 4. 404 Catch-all Middleware (After all routes)
 app.use(notFound);

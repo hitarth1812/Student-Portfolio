@@ -1,0 +1,56 @@
+PS> docker compose up -d --build --wait   (2026-10-24 22:30:34)
+ Image awdf-task-manager-api:1.0 Building 
+ Image awdf-student-portfolio-web:1.0 Building 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ Image awdf-task-manager-api:1.0 Built 
+ Image awdf-student-portfolio-web:1.0 Built 
+ Container awdf-backend Recreate 
+ Container awdf-backend Recreated 
+ Container awdf-frontend Recreate 
+ Container awdf-frontend Recreated 
+ Container awdf-mongodb Starting 
+ Container awdf-mongodb Started 
+ Container awdf-mongodb Healthy 
+ Container awdf-backend Starting 
+ Container awdf-backend Started 
+ Container awdf-backend Healthy 
+ Container awdf-frontend Starting 
+ Container awdf-frontend Started 
+ Container awdf-mongodb Healthy 
+ Container awdf-backend Healthy 
+ Container awdf-frontend Healthy 
+exit code: 0

@@ -24,7 +24,8 @@ const TOPICS = Object.freeze({
   JOB_COMPLETED: 'job:completed',
   JOB_FAILED: 'job:failed',
   NOTIFICATION_DISPATCHED: 'notification:dispatched',
-  AUDIT_LOGGED: 'audit:logged'
+  AUDIT_LOGGED: 'audit:logged',
+  AI_SUGGESTION: 'ai:suggestion'
 });
 
 const HISTORY_LIMIT = 200;

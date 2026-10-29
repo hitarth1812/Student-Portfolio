@@ -42,6 +42,10 @@ services:
       MONGO_URI: mongodb://mongodb:27017/task-manager
       CACHE_TTL: 60
       JOB_CONCURRENCY: 2
+      # Practical 13: the AI key is taken from the host environment at `up` time and
+      # only ever reaches the backend container - never the image or the frontend
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-${GOOGLE_API_KEY:-}}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
     ports:
       - "5000:5000"
     volumes:

@@ -9,9 +9,11 @@ const eventRoutes = require('./routes/eventRoutes');
 const PORT = process.env.PORT || 5000;
 
 // Fail fast at boot rather than at the first login attempt
-if (!process.env.JWT_SECRET) {
-  console.error('[Config] JWT_SECRET is missing. Add it to your .env file before starting the server.');
-  process.exit(1);
+for (const key of ['JWT_SECRET', 'MONGO_URI']) {
+  if (!process.env[key]) {
+    console.error(`[Config] ${key} is missing. Add it to your .env file (or the host's environment variables) before starting the server.`);
+    process.exit(1);
+  }
 }
 
 // Connect to MongoDB and run safe backward-compatibility migrations

@@ -68,6 +68,26 @@ describe('REST API (HTTP)', () => {
     assert.match(body.error, /Unknown job type/);
   });
 
+  it('AI suggest requires authentication and a meaningful title', async () => {
+    assert.equal((await call('POST', '/api/ai/suggest', { body: JSON.stringify({ title: 'Fix bug' }) })).status, 401);
+    assert.equal((await call('POST', '/api/ai/suggest', { body: JSON.stringify({ title: 'x' }), auth: true })).status, 400);
+  });
+
+  it('AI suggest still answers (rule-based fallback) when no AI key is configured', async () => {
+    const { status, body } = await call('POST', '/api/ai/suggest', { body: JSON.stringify({ title: 'Urgent: fix login bug' }), auth: true });
+    assert.equal(status, 200);
+    assert.equal(body.data.source, 'fallback');
+    assert.equal(body.data.priority, 'high');
+    assert.match(body.disclaimer, /Rule-based suggestion .*Review/);
+  });
+
+  it('AI status never exposes the API key', async () => {
+    const { status, body } = await call('GET', '/api/ai/status', { auth: true });
+    assert.equal(status, 200);
+    assert.equal(body.data.configured, false);
+    assert.doesNotMatch(JSON.stringify(body), /key-|AIza|sk-/);
+  });
+
   it('returns a JSON 404 for unknown routes', async () => {
     const { status, body } = await call('GET', '/does-not-exist');
     assert.equal(status, 404);

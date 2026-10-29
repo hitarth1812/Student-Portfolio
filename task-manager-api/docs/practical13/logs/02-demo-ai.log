@@ -1,0 +1,32 @@
+PS> node scripts/demo-ai.js   (2026-10-24 22:31:10)
+=== Practical 13 AI Task Assistant demo against http://localhost:8080/backend ===
+1. Authenticated as p13.ai@example.test (HTTP 201)
+2. GET /api/ai/status -> {"provider":"Google Gemini","model":"gemini-2.5-flash","enabled":true,"configured":true,"rateLimitPerMinute":10}
+3. POST /api/ai/suggest - real Gemini suggestion
+   "Prepare slides for the AWDF viva" -> HTTP 200 | source=gemini (gemini-2.5-flash) | 4425 ms
+      priority=high  due=2026-10-31 (+7d)  redacted=[]
+      description: Prepare presentation slides for the AWDF viva, covering Docker, CI/CD, and the AI assistant project.
+      step 1: Outline key points for Docker, CI/CD, and AI assistant sections.
+      step 2: Create slides for each section with relevant diagrams and examples.
+      step 3: Ensure content addresses potential viva questions.
+      step 4: Practice presentation timing and flow.
+4. Personal data is redacted before it leaves the server
+   "Email results to mentor@charusat.edu.in, call 9876543210" -> HTTP 200 | source=fallback | 1167 ms
+      priority=medium  due=2026-10-27 (+3d)  redacted=[email, phone, password]
+      description: Complete "Email lab results to [EMAIL REDACTED]": clarify the expected outcome, do the work in small verifiable steps, and confirm the result before marking it done.
+      step 1: Clarify the scope and acceptance criteria for "Email lab results to [EMAIL REDACTED]"
+      step 2: Break the work into small steps and complete the first one
+      step 3: Verify the result and mark the task as completed
+      fallbackReason: Gemini HTTP 503
+5. Identical prompt is answered from the cache (no second paid API call)
+   repeat of step 3 -> HTTP 200 | source=gemini (gemini-2.5-flash) | 4425 ms | cached
+      priority=high  due=2026-10-31 (+7d)  redacted=[]
+      description: Prepare presentation slides for the AWDF viva, covering Docker, CI/CD, and the AI assistant project.
+      step 1: Outline key points for Docker, CI/CD, and AI assistant sections.
+      step 2: Create slides for each section with relevant diagrams and examples.
+      step 3: Ensure content addresses potential viva questions.
+      step 4: Practice presentation timing and flow.
+6. Input validation
+   title "x" -> HTTP 400 A task title of at least 3 characters is required
+7. Rate limit: 10 requests per user per minute
+   -> HTTP 429 after the limit, Retry-After=55s: AI suggestion limit reached (10 per minute). Try again in 55s.

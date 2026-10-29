@@ -1,0 +1,69 @@
+PS> npm test   (2026-10-24 22:35:00)
+
+> task-manager-api@1.0.0 test
+> node --test --test-reporter=spec "tests/**/*.test.js"
+
+▶ AI service - responsible AI safeguards (Practical 13)
+  ✔ redacts emails, phone numbers, API keys and passwords before data leaves the server (3.0394ms)
+  ✔ sends only the redacted title/description to Gemini, with the key in a header (1.7374ms)
+  ✔ returns a validated Gemini suggestion with a computed due date (0.5922ms)
+  ✔ rejects out-of-range or malformed model output (never trusts it blindly) (0.4232ms)
+  ✔ degrades gracefully: invalid JSON from the model falls back to rules (0.976ms)
+  ✔ degrades gracefully: HTTP 429/500 from the provider falls back to rules (0.6331ms)
+  ✔ degrades gracefully: a network failure falls back to rules (0.5752ms)
+  ✔ works with no API key at all (feature stays usable) (0.3043ms)
+  ✔ rule-based fallback maps urgency keywords to priority and due date (1.2229ms)
+✔ AI service - responsible AI safeguards (Practical 13) (10.8548ms)
+▶ REST API (HTTP)
+  ✔ GET / lists the available endpoints (40.4728ms)
+  ✔ GET /health reports 503 "degraded" while MongoDB is not connected (8.3324ms)
+  ✔ protected routes answer 401 without a token (4.7038ms)
+  ✔ rejects a non-JSON body with 415 before reaching the controller (6.7614ms)
+  ✔ rejects an invalid task payload with 400 (14.4337ms)
+  ✔ rejects an unknown background job type with 400 (3.0697ms)
+  ✔ AI suggest requires authentication and a meaningful title (4.3415ms)
+  ✔ AI suggest still answers (rule-based fallback) when no AI key is configured (4.7856ms)
+  ✔ AI status never exposes the API key (3.0387ms)
+  ✔ returns a JSON 404 for unknown routes (1.5753ms)
+✔ REST API (HTTP) (97.4095ms)
+▶ JWT auth middleware
+  ✔ rejects a request without an Authorization header (0.7223ms)
+  ✔ rejects a token signed with a different secret (3.1328ms)
+  ✔ reports an expired token as a session expiry (0.9168ms)
+  ✔ attaches the decoded user (default role "user") for a valid token (1.3268ms)
+✔ JWT auth middleware (7.0294ms)
+▶ Cache store (Practical 9)
+  ✔ records hits and misses and calculates the hit ratio (0.8777ms)
+  ✔ invalidates every cached task list plus the single task on write (2.2601ms)
+✔ Cache store (Practical 9) (4.3876ms)
+▶ Event bus (Practical 10)
+  ✔ delivers events to subscribers asynchronously, after publish() returns (6.3865ms)
+  ✔ isolates a failing subscriber from the others (29.2019ms)
+✔ Event bus (Practical 10) (35.8721ms)
+▶ Async job queue (Practical 10)
+  ✔ enqueue() returns immediately with status "queued", then a worker completes it (22.2654ms)
+  ✔ retries a failing job with backoff and moves it to the DLQ after max attempts (1241.7713ms)
+  ✔ rejects an unregistered job type with a 400-style error (0.5636ms)
+✔ Async job queue (Practical 10) (1265.5723ms)
+▶ validateTask middleware
+  ✔ accepts a valid task and trims title/description (0.8218ms)
+  ✔ rejects a missing title with 400 and field details (0.2818ms)
+  ✔ rejects unknown priority and status values (0.1875ms)
+  ✔ allows partial updates without a title (PUT) (0.139ms)
+✔ validateTask middleware (2.2546ms)
+▶ validateAuthInput middleware
+  ✔ normalises the email to lower case (0.316ms)
+  ✔ enforces a minimum password length on registration only (0.2005ms)
+✔ validateAuthInput middleware (0.6873ms)
+▶ validateObjectId middleware
+  ✔ passes a valid ObjectId and rejects a malformed one (0.2723ms)
+✔ validateObjectId middleware (0.4033ms)
+ℹ tests 37
+ℹ suites 9
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1375.2005
+exit code: 0

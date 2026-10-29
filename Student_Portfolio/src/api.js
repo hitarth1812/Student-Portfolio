@@ -1,6 +1,7 @@
 // Baked in at build time. In Docker the frontend is built with VITE_API_URL=/backend
-// so Nginx proxies API calls on the same origin; locally it falls back to :5000.
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// so Nginx proxies API calls on the same origin; on Vercel it is the Railway URL;
+// locally it falls back to :5000. A trailing slash is tolerated.
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
 const TOKEN_KEY = 'tm_token';
 
@@ -210,4 +211,20 @@ export const downloadJobExport = async (id) => {
   }
 
   return response.blob();
+};
+
+/* ---------- AI Task Assistant (Practical 13) ---------- */
+
+// The browser only talks to our backend; the AI provider key never reaches the client
+export const getAiSuggestion = async ({ title, description }) => {
+  const body = await request('/api/ai/suggest', {
+    method: 'POST',
+    body: { title, description },
+  });
+  return { ...body.data, disclaimer: body.disclaimer };
+};
+
+export const getAiStatus = async () => {
+  const body = await request('/api/ai/status');
+  return body.data;
 };

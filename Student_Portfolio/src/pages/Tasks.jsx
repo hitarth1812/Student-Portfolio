@@ -4,6 +4,7 @@ import { useAuth } from "../context/auth-context";
 import ErrorMessage from "../components/ErrorMessage";
 import TaskSection from "../components/TaskSection";
 import EventPanel from "../components/EventPanel";
+import AiSuggestPanel from "../components/AiSuggestPanel";
 import {
   getTasks,
   createTask,
@@ -395,6 +396,15 @@ function Tasks() {
             {creating ? "Adding..." : "+ Add Task"}
           </button>
         </form>
+
+        <AiSuggestPanel
+          title={title}
+          description={description}
+          onApply={({ description: aiDescription, priority: aiPriority }) => {
+            setDescription(aiDescription);
+            setPriority(aiPriority);
+          }}
+        />
       </section>
 
       {taskError && (
