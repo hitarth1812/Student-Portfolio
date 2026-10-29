@@ -1,0 +1,28 @@
+PS> bash task-manager-api/scripts/docker-smoke-test.sh   (2026-10-23 10:39:00)
+=== 1. Frontend container (Nginx) ===
+  [PASS] GET http://localhost:8080/ (SPA index) -> 200
+  [PASS] GET http://localhost:8080/tasks (SPA fallback route) -> 200
+  [PASS] GET http://localhost:8080/nginx-health -> 200
+  [PASS] gzip on /assets/index-C5IK4dh5.js -> gzip
+  [PASS] immutable cache header on assets -> public, max-age=31536000, immutable
+=== 2. Backend container through the Nginx reverse proxy (/backend -> backend:5000) ===
+  /health: {"status":"ok","db":"connected","uptimeSeconds":6,"hostname":"25a44412babe","node":"v22.23.4"}
+  [PASS] API health status -> ok
+  [PASS] API -> MongoDB connection -> connected
+  [PASS] JWT issued -> yes
+  [PASS] POST /tasks (write reaches MongoDB container) -> true
+  [PASS] GET /tasks first read -> MISS
+  [PASS] GET /tasks second read (node-cache) -> HIT
+  [PASS] POST /api/jobs async job -> 202
+  [PASS] SSE stream through Nginx (unbuffered) -> event: connected
+=== 3. Container isolation & security ===
+  [PASS] backend runs as non-root user -> node
+  [PASS] .env NOT baked into backend image -> absent
+  [PASS] frontend image has no Node.js runtime -> absent
+  [PASS] frontend cannot reach mongodb (separate network) -> unreachable
+  [PASS] backend resolves mongodb by service name -> reachable
+=== 4. Data persistence (named volume survives a container restart) ===
+  [PASS] backend healthy again after restart -> healthy
+  [PASS] task 6adaebedc651a52b08df271d still in MongoDB after restart -> 200
+
+RESULT: 20 passed, 0 failed

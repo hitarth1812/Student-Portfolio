@@ -1,0 +1,14 @@
+PS> $env:GEMINI_MODEL='gemini-unavailable-model'; docker compose up -d --build backend   (simulate an AI provider outage)
+ Image awdf-task-manager-api:1.0 Built 
+ Container awdf-backend Recreate 
+ Container awdf-backend Recreated 
+ Container awdf-mongodb Healthy 
+ Container awdf-backend Started 
+
+PS> docker exec awdf-backend grep ai:suggestion /app/logs/events.csv | Select-Object -Last 1
+2026-10-24T17:04:24.977Z,evt-1792861464977-b9108a,ai:suggestion,p11.docker@example.test,"{""source"":""fallback"",""model"":""rule-based"",""latencyMs"":582,""cached"":false,""redacted"":[],""fallbackReason"":""Gemini HTTP 404""}"
+
+PS> Remove-Item Env:GEMINI_MODEL; docker compose up -d backend   (restore gemini-2.5-flash)
+ Container awdf-backend Recreate 
+ Container awdf-backend Recreated 
+ Container awdf-backend Started 

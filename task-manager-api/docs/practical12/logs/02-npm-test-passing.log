@@ -1,0 +1,56 @@
+PS> npm test   (2026-10-24 21:46:01, assertion fixed)
+
+> task-manager-api@1.0.0 test
+> node --test --test-reporter=spec "tests/**/*.test.js"
+
+▶ REST API (HTTP)
+  ✔ GET / lists the available endpoints (42.747ms)
+  ✔ GET /health reports 503 "degraded" while MongoDB is not connected (7.8218ms)
+  ✔ protected routes answer 401 without a token (4.4907ms)
+  ✔ rejects a non-JSON body with 415 before reaching the controller (6.1104ms)
+  ✔ rejects an invalid task payload with 400 (14.0663ms)
+  ✔ rejects an unknown background job type with 400 (3.538ms)
+  ✔ returns a JSON 404 for unknown routes (2.1896ms)
+✔ REST API (HTTP) (86.7996ms)
+▶ JWT auth middleware
+  ✔ rejects a request without an Authorization header (1.3427ms)
+  ✔ rejects a token signed with a different secret (4.2667ms)
+  ✔ reports an expired token as a session expiry (1.1266ms)
+  ✔ attaches the decoded user (default role "user") for a valid token (1.7099ms)
+✔ JWT auth middleware (10.0541ms)
+▶ Cache store (Practical 9)
+  ✔ records hits and misses and calculates the hit ratio (1.6374ms)
+  ✔ invalidates every cached task list plus the single task on write (2.2596ms)
+✔ Cache store (Practical 9) (5.8862ms)
+▶ Event bus (Practical 10)
+  ✔ delivers events to subscribers asynchronously, after publish() returns (14.4646ms)
+[EventBus] subscriber "brokenSubscriber" failed on test:isolation: boom
+  ✔ isolates a failing subscriber from the others (33.1851ms)
+✔ Event bus (Practical 10) (48.1842ms)
+▶ Async job queue (Practical 10)
+  ✔ enqueue() returns immediately with status "queued", then a worker completes it (28.8407ms)
+  ✔ retries a failing job with backoff and moves it to the DLQ after max attempts (1250.7799ms)
+  ✔ rejects an unregistered job type with a 400-style error (0.6659ms)
+✔ Async job queue (Practical 10) (1281.7948ms)
+▶ validateTask middleware
+  ✔ accepts a valid task and trims title/description (0.8253ms)
+  ✔ rejects a missing title with 400 and field details (0.3001ms)
+  ✔ rejects unknown priority and status values (0.2098ms)
+  ✔ allows partial updates without a title (PUT) (0.1365ms)
+✔ validateTask middleware (2.3629ms)
+▶ validateAuthInput middleware
+  ✔ normalises the email to lower case (0.3695ms)
+  ✔ enforces a minimum password length on registration only (0.2274ms)
+✔ validateAuthInput middleware (0.7341ms)
+▶ validateObjectId middleware
+  ✔ passes a valid ObjectId and rejects a malformed one (0.28ms)
+✔ validateObjectId middleware (0.4398ms)
+ℹ tests 25
+ℹ suites 8
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1420.3551
+exit code: 0

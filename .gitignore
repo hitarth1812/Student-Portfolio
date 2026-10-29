@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Lab evidence logs inside docs/ are meant to be committed
+!task-manager-api/docs/*/logs/
+!task-manager-api/docs/*/logs/*.log

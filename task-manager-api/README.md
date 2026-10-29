@@ -550,3 +550,50 @@ docker compose up -d --build
 - **Secrets** (`JWT_SECRET`) come from `task-manager-api/.env` via `env_file` and are never copied into an image (`.dockerignore`).
 
 Verify the running stack (20 checks): `bash task-manager-api/scripts/docker-smoke-test.sh`
+
+---
+
+## 14. Automated Testing & CI/CD (Practical 12)
+
+`npm test` runs the suite with Node's built-in runner (`node --test`, no extra dependencies) - **25 tests** in `tests/`:
+
+| File | Covers |
+|---|---|
+| `validation.test.js` | `validateTask`, `validateAuthInput`, `validateObjectId` |
+| `auth.test.js` | JWT middleware: missing, forged, expired and valid tokens |
+| `cache-events.test.js` | node-cache hit ratio + invalidation, event bus async delivery and subscriber isolation |
+| `jobs.test.js` | job queue: 202-style enqueue, retry with backoff, Dead Letter Queue |
+| `api.test.js` | the real Express app over HTTP (`app.js` on an ephemeral port): health, 401/400/415/404 envelopes |
+
+`app.js` builds the Express app; `server.js` only connects MongoDB, listens and handles shutdown, which is what lets the tests import the app without a database.
+
+**Pipeline** - `.github/workflows/ci.yml` runs on every push and pull request:
+
+1. **Backend - Test & Boot**: `npm ci`, `npm test`, then boots `server.js` against a MongoDB service container and probes `/health`.
+2. **Frontend - Lint & Build**: `npm ci`, ESLint, `vite build`, uploads `dist/` as an artifact.
+3. **Docker Compose - Integration Test** (after 1 + 2): builds both images, starts the full stack with `--wait`, runs `scripts/docker-smoke-test.sh`.
+4. **CD - Publish images to GHCR** (pushes to `main` only): tags both images `latest` + commit SHA and pushes them to `ghcr.io`.
+
+Test and smoke-test output is written to each run's summary page.
+
+---
+
+## 15. AI Task Assistant & Responsible AI (Practical 13)
+
+The **✨ AI Suggest** button in the task form asks the backend for a suggested priority, due date, clearer description and action steps. The user reviews the suggestion and chooses **Apply** or **Dismiss**; nothing is changed automatically.
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /api/ai/suggest` `{ title, description? }` | Validated suggestion from Google Gemini, or the rule-based fallback |
+| `GET /api/ai/status` | Provider/model and whether a key is configured (the key itself is never returned) |
+
+Responsible-AI safeguards (`services/aiService.js`, `routes/aiRoutes.js`):
+
+- **Key stays on the server**: `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) is read from the backend environment and sent in the `x-goog-api-key` header, never in a URL, never to the browser, never baked into an image.
+- **Data minimisation and redaction**: only the title and description are sent, truncated to 500 characters, after removing emails, phone numbers, card numbers, API keys/JWTs and `password:` values.
+- **Output is validated, not trusted**: Gemini is asked for a JSON schema, and the reply must also pass server-side checks (priority enum, 0-60 day due date, length limits) or it is discarded.
+- **Graceful degradation**: no key, `AI_ENABLED=false`, a 10 s timeout, HTTP errors or invalid output all fall back to a deterministic rule-based suggester, and the UI says so.
+- **Cost and abuse control**: 10 requests per user per minute (`429` + `Retry-After`), and identical prompts are cached for 10 minutes.
+- **Audit without content**: every call publishes an `ai:suggestion` event (source, model, latency, cached, redactions, fallback reason) to `logs/events.csv`. The task text itself is never logged.
+
+Tests (`tests/ai.test.js`) mock the provider, so they are free, deterministic and run in CI without a key; `tests/helpers.js` removes any real key from the test environment.

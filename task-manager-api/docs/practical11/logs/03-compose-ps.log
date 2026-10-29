@@ -1,0 +1,5 @@
+PS> docker compose ps
+NAME            IMAGE                            COMMAND                  SERVICE    CREATED              STATUS                   PORTS
+awdf-backend    awdf-task-manager-api:1.0        "docker-entrypoint.s…"   backend    About a minute ago   Up 8 seconds (healthy)   0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp
+awdf-frontend   awdf-student-portfolio-web:1.0   "/docker-entrypoint.…"   frontend   3 minutes ago        Up 3 minutes (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
+awdf-mongodb    mongo:7.0                        "docker-entrypoint.s…"   mongodb    4 minutes ago        Up 8 seconds (healthy)   0.0.0.0:27018->27017/tcp, [::]:27018->27017/tcp

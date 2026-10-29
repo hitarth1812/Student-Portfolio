@@ -1,0 +1,16 @@
+PS> docker exec awdf-backend grep ai:suggestion /app/logs/events.csv
+timestamp,event_id,topic,actor,payload
+2026-10-24T17:01:14.792Z,evt-1792861274792-d2ee2c,ai:suggestion,p13.ai@example.test,"{""source"":""gemini"",""model"":""gemini-2.5-flash"",""latencyMs"":4425,""cached"":false,""redacted"":[]}"
+2026-10-24T17:01:15.969Z,evt-1792861275969-73ced3,ai:suggestion,p13.ai@example.test,"{""source"":""fallback"",""model"":""rule-based"",""latencyMs"":1167,""cached"":false,""redacted"":[""email"",""phone"",""password""],""fallbackReason"":""Gemini HTTP 503""}"
+2026-10-24T17:01:15.974Z,evt-1792861275974-e1fff5,ai:suggestion,p13.ai@example.test,"{""source"":""gemini"",""model"":""gemini-2.5-flash"",""latencyMs"":4425,""cached"":true,""redacted"":[]}"
+2026-10-24T17:01:15.984Z,evt-1792861275984-18923c,ai:suggestion,p13.ai@example.test,"{""source"":""gemini"",""model"":""gemini-2.5-flash"",""latencyMs"":4425,""cached"":true,""redacted"":[]}"
+2026-10-24T17:01:15.989Z,evt-1792861275989-4f70ab,ai:suggestion,p13.ai@example.test,"{""source"":""gemini"",""model"":""gemini-2.5-flash"",""latencyMs"":4425,""cached"":true,""redacted"":[]}"
+2026-10-24T17:01:15.993Z,evt-1792861275993-c25684,ai:suggestion,p13.ai@example.test,"{""source"":""gemini"",""model"":""gemini-2.5-flash"",""latencyMs"":4425,""cached"":true,""redacted"":[]}"
+
+PS> docker exec awdf-backend grep -c 'charusat\|9876543210\|Hunter2' /app/logs/events.csv   (task text / personal data in audit log?)
+0
+
+PS> docker exec awdf-backend printenv | grep -c GEMINI_API_KEY   (key present only in backend container)
+1
+PS> docker exec awdf-frontend sh -c 'grep -rl AIza /usr/share/nginx/html | wc -l'   (key in frontend bundle?)
+0

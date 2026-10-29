@@ -24,8 +24,9 @@ const csvEscape = (value) => {
 const OBJECT_ID_IN_PATH = /^\/tasks\/([a-fA-F0-9]{24})(?:\/|$)/;
 
 const logger = (req, res, next) => {
-  // Docker HEALTHCHECK probes run every 15 s; logging them would bury real traffic
-  if (req.path === '/health') {
+  // Docker HEALTHCHECK probes run every 15 s; logging them would bury real traffic.
+  // Automated tests (NODE_ENV=test) must not append to the committed logs.csv either.
+  if (req.path === '/health' || process.env.NODE_ENV === 'test') {
     return next();
   }
 
