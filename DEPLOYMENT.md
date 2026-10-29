@@ -28,16 +28,16 @@ be added to the backend's CORS allow-list afterwards.
 Dashboard: **Add New → Project** → import the repository → **Root Directory `task-manager-api`** →
 Framework Preset *Other* (the rest comes from `vercel.json`) → add the variables below → Deploy.
 
-CLI equivalent (from the repo root):
+Variables can also be added from the CLI (inside `task-manager-api/`, once linked with `vercel link`):
 
 ```bash
-cd task-manager-api
-vercel link                      # create the project, e.g. hitarth-task-api
 vercel env add MONGO_URI production
-vercel env add JWT_SECRET production
 vercel env add GEMINI_API_KEY production    # optional; without it the rule-based fallback is used
-vercel deploy --prod
 ```
+
+Variables only apply to new builds: push to `main`, or Dashboard → Deployments → latest → ⋯ → **Redeploy**.
+Do not run `vercel deploy` from inside the folder: with Root Directory set, Vercel resolves
+`task-manager-api/task-manager-api` and fails. Deploys come from GitHub (step 6).
 
 | Variable | Value |
 |---|---|
@@ -55,12 +55,7 @@ If a variable is missing the API answers `500 Server misconfigured: ... not set`
 Dashboard: **Add New → Project** → same repository → **Root Directory `Student_Portfolio`** →
 **Environment Variables**: `VITE_API_URL` = the backend URL from step 2 → Deploy.
 
-```bash
-cd Student_Portfolio
-vercel link                      # e.g. hitarth-portfolio
-vercel env add VITE_API_URL production
-vercel deploy --prod
-```
+(CLI: `vercel env add VITE_API_URL production` inside `Student_Portfolio/`, then push to `main` or Redeploy from the dashboard.)
 
 The build stops with an error if `VITE_API_URL` is missing, so the site can never point at `localhost`.
 Changing it later requires a redeploy, because Vite bakes it into the bundle.
@@ -81,6 +76,16 @@ When `CORS_ORIGINS` is empty (local dev, Docker) every origin is allowed.
 
 Open the frontend → register → log in → create a task → try **✨ AI Suggest**.
 Refresh on `/tasks` to confirm deep links work (rewrite in `Student_Portfolio/vercel.json`).
+
+## 6. Continuous deployment from GitHub
+
+Both projects are connected to the GitHub repository, each with its own **Root Directory**
+(Settings → Build and Deployment). Every push builds both projects:
+
+- a push to **`main`** (the production branch) updates the production URLs;
+- a push to any other branch creates **preview** deployments (frontend previews use the Preview `VITE_API_URL`).
+
+If a build fails with *Missing script: "build"* or *No Express entrypoint found*, the Root Directory is not set.
 
 ## Serverless limits (what behaves differently from Docker)
 
